@@ -3,7 +3,7 @@
 import os
 
 # Written by the release workflow - do not hand-edit.
-__version__ = "0.1.3"
+__version__ = "1.0.0"
 
 # Set at image build time for builds that are not releases, so a master build is
 # distinguishable from the release it descends from. PEP 440 local-version
