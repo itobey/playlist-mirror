@@ -1,0 +1,1629 @@
+/* ==========================================================================
+   The Allocation Listing
+   Greenbar continuous form. Cream stock banded pale green every three lines,
+   punched sprocket margins pinned at both edges that nothing ever spans,
+   impact ink plus one red ribbon reserved for state marks.
+   Preprinted legends are set in Martian Mono; all machine data in Sometype Mono.
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Martian Mono';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('/static/fonts/martian-mono-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Martian Mono';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('/static/fonts/martian-mono-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+    U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sometype Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/static/fonts/sometype-mono-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sometype Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/static/fonts/sometype-mono-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+    U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  --stock: #e9e5d6;
+  --stock-lift: #f2efe4;
+  --band: #cbd9bd;
+  --band-deep: #b9cbaa;
+  --punch: #cdc7b3;
+  --stock-hover: #f6f4eb;
+
+  --ink: #1b1e18;
+  --ink-2: #4e5347;
+  --ink-3: #565b4f;
+  --rule: #9a9c88;
+  --rule-soft: #b6b7a4;
+
+  --ribbon: #a8301b;
+  --ribbon-deep: #86230f;
+  --ribbon-wash: #e7cdc4;
+  --ribbon-wash-deep: #dfbcb1;
+
+  --legend: 'Martian Mono', ui-monospace, monospace;
+  --data: 'Sometype Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --sprocket: 42px;
+  --gutter: clamp(1rem, 3vw, 3rem);
+  --line: 1px solid var(--rule);
+  --line-soft: 1px solid var(--rule-soft);
+  --line-heavy: 2px solid var(--ink);
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--stock);
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: clamp(0.875rem, 0.83rem + 0.2vw, 0.95rem);
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+  scrollbar-color: var(--rule) var(--stock);
+  scrollbar-width: thin;
+}
+
+::selection { background: var(--ribbon); color: var(--stock-lift); }
+
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--stock); border-left: var(--line-soft); }
+::-webkit-scrollbar-thumb { background: var(--rule); border: 3px solid var(--stock); }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
+
+:focus-visible {
+  outline: 2px solid var(--ribbon);
+  outline-offset: 2px;
+}
+
+a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--ribbon); text-decoration-color: var(--ribbon); }
+
+h1, h2, h3 { margin: 0; font-weight: 700; }
+p { margin: 0; }
+code {
+  font-family: var(--data);
+  font-size: 0.92em;
+  background: var(--stock-lift);
+  border: var(--line-soft);
+  padding: 0.05em 0.35em;
+}
+code.pick { border-color: var(--ribbon); color: var(--ribbon-deep); }
+strong { font-weight: 700; }
+em { font-style: italic; }
+
+.ico { flex: none; display: block; }
+
+/* --- Sprocket margins ----------------------------------------------------
+   Pinned to both edges, never spanned. This is what makes the page a form
+   rather than a document.                                                  */
+
+.sprocket {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: var(--sprocket);
+  z-index: 5;
+  pointer-events: none;
+  background-color: var(--stock);
+  background-image:
+    radial-gradient(circle at 50% 50%,
+      var(--punch) 0 4.6px, var(--rule-soft) 4.6px 5.2px, transparent 5.3px);
+  background-size: 100% 34px;
+  background-position: 0 12px;
+}
+.sprocket--left { left: 0; border-right: 1px dashed var(--rule-soft); }
+.sprocket--right { right: 0; border-left: 1px dashed var(--rule-soft); }
+
+.form {
+  margin: 0 var(--sprocket);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Masthead ------------------------------------------------------------ */
+
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding: clamp(1.5rem, 3.5vw, 2.75rem) var(--gutter) 1.1rem;
+  border-bottom: var(--line-heavy);
+}
+.masthead__name {
+  display: block;
+  font-family: var(--legend);
+  font-weight: 800;
+  font-size: clamp(1.35rem, 1rem + 2.1vw, 2.3rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.masthead__name:hover { color: var(--ribbon); }
+.masthead__sub {
+  margin-top: 0.65rem;
+  max-width: 56ch;
+  color: var(--ink-2);
+  font-size: 0.85rem;
+}
+.masthead__nav {
+  display: flex;
+  gap: 0.4rem;
+  font-family: var(--legend);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.masthead__nav a {
+  padding: 0.5rem 0.9rem;
+  border: var(--line);
+  text-decoration: none;
+  color: var(--ink-2);
+}
+.masthead__nav a:hover { border-color: var(--ink); color: var(--ink); }
+.masthead__nav a[aria-current='page'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--stock-lift);
+}
+
+/* --- The allocation line -------------------------------------------------
+   One ruled band, legend to meter to figure, with a single line of note
+   under it. Deliberately slight: it is context for the playlist mirror, and every
+   number in it is a local estimate.                                        */
+
+.alloc {
+  --leader-bg: var(--band);
+  background: var(--band);
+  border-bottom: var(--line-heavy);
+  padding: 0.6rem var(--gutter) 0.65rem;
+}
+.alloc--spent { --leader-bg: var(--ribbon-wash); background: var(--ribbon-wash); }
+
+.alloc__row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+.alloc__legend {
+  flex: 0 0 auto;
+  font: 700 0.62rem/1 var(--legend);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.alloc__figure {
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.alloc__figure .unit { font-weight: 400; }
+
+/* Collapsed, the band is a legend, a meter, a figure and one quiet toggle.
+   The whole explanation is one disclosure below it. */
+.alloc__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1.4rem;
+  margin-top: 0.45rem;
+}
+.alloc__state {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--ribbon-deep);
+}
+.alloc__state-icon {
+  flex: 0 0 auto;
+  width: 13px; height: 13px;
+  transform: translateY(2px);
+}
+
+/* The credits wall is the one state on this band that carries a control. The
+   reset time above it is computed from a configured timezone, and a wrong
+   timezone is the single case where waiting is the wrong answer — so the state
+   line and its override read as one block, on their own row, above the
+   disclosure. Quiet by construction: a linkout, never a plate. Nothing on this
+   band is the subject of the page. */
+.alloc__hold {
+  flex: 0 0 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+.alloc__redo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1rem 0.75rem;
+  margin: 0;
+}
+.alloc__redo .linkout { padding: 0.15rem 0; }
+.alloc__redo-mark {
+  flex: 0 0 auto;
+  width: 13px; height: 13px;
+}
+.alloc__redo-note {
+  flex: 1 1 20rem;
+  min-width: 0;
+  max-width: 80ch;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+
+.explain { flex: 1 1 auto; min-width: 0; }
+.explain > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  padding: 0.1rem 0;
+  font: 700 0.62rem/1.4 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  cursor: pointer;
+  list-style: none;
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 4px;
+}
+.explain > summary::-webkit-details-marker { display: none; }
+.explain > summary:hover { color: var(--ink); text-decoration-color: var(--ink); }
+.alloc--spent .explain > summary:hover { color: var(--ribbon-deep); text-decoration-color: var(--ribbon); }
+.explain__mark {
+  flex: 0 0 auto;
+  width: 13px; height: 13px;
+  transition: transform 0.18s var(--ease);
+}
+.explain[open] > summary > .explain__mark { transform: rotate(180deg); }
+
+.explain__body {
+  max-width: 68ch;
+  margin-top: 0.7rem;
+  padding-left: 0.8rem;
+  border-left: 1px solid var(--ink-2);
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+.alloc--spent .explain__body { border-left-color: var(--ribbon); }
+.explain__body p + p { margin-top: 0.6rem; }
+.explain__body b { font-weight: 700; color: var(--ink); }
+.explain__meta {
+  font-family: var(--legend);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Ruled ledger lines with dot leaders — the form's own way of pairing a
+   legend with a figure. */
+.ledger { margin: 0; }
+.ledger__line {
+  display: flex;
+  align-items: baseline;
+  overflow: hidden;
+  padding: 0.32rem 0;
+}
+.ledger__line dt {
+  position: relative;
+  margin: 0;
+  padding-right: 0.55rem;
+  font: 400 0.68rem/1.6 var(--legend);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.ledger__line dt::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  bottom: 0.36em;
+  width: 100vw;
+  border-bottom: 1px dotted var(--rule);
+}
+.ledger__line dd {
+  position: relative;
+  margin: 0 0 0 auto;
+  padding-left: 0.6rem;
+  background: var(--leader-bg);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ledger--banded .ledger__line {
+  padding-inline: var(--gutter);
+  margin-inline: calc(-1 * var(--gutter));
+}
+.ledger--banded .ledger__line:nth-child(6n+1),
+.ledger--banded .ledger__line:nth-child(6n+2),
+.ledger--banded .ledger__line:nth-child(6n+3) {
+  background: var(--band);
+  --leader-bg: var(--band);
+}
+.ledger__line--total {
+  border-top: var(--line);
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+}
+.ledger__line--total dt { color: var(--ink); font-weight: 700; }
+.ledger__line--total dd { font-size: 1.05rem; }
+.unit {
+  margin-left: 0.45rem;
+  font: 400 0.6rem/1 var(--legend);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.miss { color: var(--ribbon-deep); font-weight: 700; }
+
+/* Cell divisions are hairlines, heavier every tenth, so the unspent run reads
+   as a ruled scale rather than a barcode and the charged run stays one solid
+   struck block. */
+.strip__cells {
+  flex: 1 1 auto;
+  min-width: 6rem;
+  display: flex;
+  height: 11px;
+  border: 1px solid var(--ink);
+  background: var(--stock-lift);
+}
+.cell {
+  flex: 1 1 0;
+  min-width: 0;
+  border-right: 1px solid rgba(27, 30, 24, 0.12);
+}
+.cell--charged { background: var(--ink); border-right-color: rgba(233, 229, 214, 0.16); }
+.cell--decade { border-right: 1px solid var(--ink); }
+.cell--charged.cell--decade { border-right-color: var(--stock-lift); }
+.strip__cells .cell:last-child { border-right: 0; }
+
+.ledger__line abbr {
+  text-decoration: none;
+  border-bottom: 1px dotted var(--ink-2);
+  cursor: help;
+}
+/* --- Sheet and blocks ---------------------------------------------------- */
+
+.sheet { flex: 1 1 auto; }
+
+.block {
+  padding: clamp(1.6rem, 3.2vw, 2.6rem) var(--gutter);
+  border-bottom: var(--line);
+}
+.block:last-child { border-bottom: none; }
+.block--register, .block--listing { padding-bottom: 0.5rem; }
+
+/* Greenbar bands a *listing* — it is tinted per printed row, three rows on and
+   three off, so every band contains whole lines. A fixed-pitch gradient behind
+   free-form content (labels, inputs, prose) cuts through the middle of them and
+   reads as blocks dropped at random, which is the opposite of ruled stock. So
+   the bands live only where rows exist: the record listing, the ledger lines,
+   and the allocation band. Every other block is clean stock. */
+.block { background: var(--stock); }
+
+.block__legend { margin-bottom: 1.3rem; }
+.block__legend h2 {
+  font: 700 0.68rem/1 var(--legend);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.block__legend p {
+  margin-top: 0.6rem;
+  max-width: 68ch;
+  color: var(--ink-2);
+  font-size: 0.85rem;
+}
+
+.flash {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 1.4rem;
+  padding: 0.7rem 0.9rem;
+  border: var(--line);
+  background: var(--stock-lift);
+  font-size: 0.85rem;
+}
+.flash--error { border-color: var(--ribbon); color: var(--ribbon-deep); }
+.flash__icon { margin-top: 0.15rem; }
+
+/* --- Entry form ---------------------------------------------------------- */
+
+.entryform {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem 1.6rem;
+  align-items: start;
+}
+.field--wide, .entryform__submit { grid-column: 1 / -1; }
+.entryform__submit { display: flex; justify-content: flex-end; }
+
+/* The positioning context a field's tip note hangs from. */
+.field { position: relative; }
+.field label {
+  display: block;
+  font: 700 0.62rem/1 var(--legend);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+.field__optional {
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+.field input, .field textarea {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: var(--line);
+  border-bottom: var(--line-heavy);
+  background: var(--stock-lift);
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 0.9rem;
+  caret-color: var(--ribbon);
+  resize: vertical;
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--ink-3); }
+.field input:hover, .field textarea:hover { background: var(--stock-hover); }
+.field__help {
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+.field__help code {
+  font-family: inherit;
+  padding: 0 0.2rem;
+  background: var(--stock-lift);
+  border: 1px solid var(--rule-soft);
+}
+
+/* --- The run limit: a punched box and the figure it admits ----------------
+   The only checkbox in the system, drawn as a punch: a square well in the form
+   stock, struck solid ink when it is set, with the tick in the same drawn hand
+   as every other mark. The figure prints only while the box is struck — an
+   entry blank that cannot affect the run has no business on the form — so the
+   reveal is a sibling selector, not a script.                                */
+
+.cap {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem 0.55rem;
+}
+.cap .cap__box {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--ink);
+  background: var(--stock-lift);
+  cursor: pointer;
+}
+.cap .cap__box:hover { background: var(--stock-hover); }
+.cap .cap__box:checked {
+  background-color: var(--ink);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23f2efe4' stroke-width='2.2' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='M2.5 8.5 L6 12 L13.5 4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px 11px;
+}
+.cap .cap__word {
+  display: inline-block;
+  margin: 0;
+  font: 700 0.62rem/1 var(--legend);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.cap__set {
+  display: none;
+  grid-column: 1 / -1;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.cap .cap__box:checked ~ .cap__set { display: flex; }
+.cap .cap__label {
+  display: inline-block;
+  margin: 0;
+  font: 400 0.62rem/1 var(--legend);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+/* Typed, never stepped: the native spinner is the one rounded, shaded control
+   the browser would otherwise put on this form. */
+.cap .cap__num {
+  appearance: textfield;
+  -moz-appearance: textfield;
+  width: 5.5rem;
+  padding: 0.45rem 0.55rem;
+  border: var(--line);
+  border-bottom: var(--line-heavy);
+  background: var(--stock-lift);
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 0.9rem;
+  caret-color: var(--ribbon);
+}
+.cap .cap__num::-webkit-outer-spin-button,
+.cap .cap__num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.cap .cap__num:hover { background: var(--stock-hover); }
+.cap__unit {
+  font: 400 0.6rem/1 var(--legend);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.cap__help {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+
+/* In the run controls the whole clause sits on one rule, so the figure follows
+   the box across rather than dropping under it. */
+.cap--inline { display: flex; flex-wrap: wrap; align-items: center; }
+/* The note is the exception: it takes the next line whole. */
+.cap--inline .cap__help { flex-basis: 100%; margin-top: 0.5rem; }
+/* Two tracked-caps legends land on one line here, so the figure's own legend
+   needs room to read as a second clause rather than as more of the first. */
+.cap--inline .cap__set { grid-column: auto; margin-left: 0.5rem; }
+
+
+/* --- The daily run: a punch box that admits another -------------------
+   The run limit's punch box reveals a figure. This one reveals a second box, on
+   the same rule: being told about a run only means something when there is a
+   run nobody watched, so the notification cannot exist above the daily run
+   that produces it. Same square well, same drawn tick, same sibling selector —
+   the reveal is still CSS, and the script only saves.                        */
+
+.setform { margin: 0; }
+/* In the job controls each breaks the row, so the ceiling above and the
+   daily run below read as the two halves of one decision. */
+.controls > .setform { flex-basis: 100%; }
+
+.cap--order { grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.55rem; }
+/* Both legends here are whole clauses and both wrap on a phone, so they need
+   leading the single-line ceiling clause does not. */
+.cap--order .cap__word { line-height: 1.35; }
+/* The reveal is a stack here rather than a row: it holds a whole clause, and
+   sometimes a warning under it. */
+.cap .cap__box:checked ~ .cap__set--order { display: block; }
+.cap__set--order {
+  margin-top: 0.2rem;
+  padding-left: 0.85rem;
+  border-left: 1px solid var(--ink-2);
+}
+.order__tell { display: inline-flex; align-items: center; gap: 0.55rem; }
+/* The admitted clause is set lighter than the one that admits it — one is the
+   decision, the other is what follows from it. */
+.cap .cap__word--sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+.order__tell-mark { width: 12px; height: 12px; color: var(--ink-3); }
+.cap__set--order .cap__help { margin-top: 0.55rem; }
+/* Before a box is struck there is nothing to say, and an empty note would still
+   hold a line of the record open. */
+.cap__help:empty { display: none; }
+
+/* Ticked to report, with nowhere to report to. Ribbon, because it is the one
+   thing on this control that will not do what it says. */
+.order__warn {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  max-width: 62ch;
+  margin-top: 0.55rem;
+  font-size: 0.78rem;
+  color: var(--ribbon-deep);
+}
+.order__warn-mark { flex: none; width: 12px; height: 12px; transform: translateY(2px); }
+.order__warn a { color: inherit; text-decoration-color: var(--ribbon); }
+
+/* The submit plate exists for a browser posting the form itself. With scripting
+   the boxes post themselves, so it is removed before first paint rather than
+   drawn and then taken away. */
+.js .setform__save { display: none; }
+.setform__save { align-self: start; }
+/* A run reads its ceiling once, when it starts, so there is nothing to save
+   while one is going: the figure is printed, not entered. */
+.limit--struck .setform__save { display: none; }
+
+/* The mark on a job that runs itself. A legend in the kind mark's family, not a
+   stamp: a stamp says what state a job is in, this says how it is operated. */
+.ordermark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  margin: 0;
+  padding: 0.24rem 0.45rem;
+  border: 1px solid var(--rule);
+  font: 700 0.58rem/1.2 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.ordermark.is-hidden { display: none; }
+.ordermark .ico { width: 12px; height: 12px; }
+.ordermark__tell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding-left: 0.45rem;
+  border-left: var(--line-soft);
+  color: var(--ink-3);
+}
+.ordermark__tell.is-hidden { display: none; }
+/* Ticked, and the runner will not touch it. Dashed ribbon, the same treatment
+   the credits wall gets: something is waiting on a condition outside the job. */
+.ordermark--blocked { border: 1px dashed var(--ribbon); color: var(--ribbon-deep); }
+.block--job > .ordermark { margin-top: 1.1rem; }
+
+/* The register's own line about the orders standing on it: a ruled slip, not a
+   band — greenbar is tinted per printed row and never behind prose. */
+.orders {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  max-width: 76ch;
+  margin-top: 0.9rem;
+  padding: 0.6rem 0.8rem;
+  border: var(--line);
+  background: var(--stock-lift);
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.orders__mark { flex: none; width: 13px; height: 13px; transform: translateY(2px); }
+.orders b { color: var(--ink); }
+.orders--warn {
+  border: 1px dashed var(--ribbon);
+  background: transparent;
+  color: var(--ribbon-deep);
+}
+.orders--warn b, .orders--warn a { color: inherit; }
+.orders--warn a { text-decoration-color: var(--ribbon); }
+.orders + .orders { margin-top: 0.5rem; }
+
+/* --- How a job is operated ------------------------------------------------
+   Two settings, one arrangement: a punch box that admits what follows from it,
+   printed on both the register and the job page, saved by the control that
+   shows it. They sit together on a register record under one soft rule, ruled
+   off from the record's own figures — the figures are what the job has done,
+   these are instructions about what it will do.                             */
+
+.entry__ops {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 0.95rem;
+  padding-top: 0.85rem;
+  border-top: var(--line-soft);
+}
+
+/* The ceiling while the run it governs is going: struck onto the form rather
+   than offered as a blank. The box keeps its mark — it is set, and that is the
+   fact being printed — but goes one tone back to say it is not being asked. */
+.cap .cap__box:disabled { cursor: default; }
+.cap .cap__box:disabled:hover { background: var(--stock-lift); }
+.cap .cap__box:disabled:checked { background-color: var(--ink-2); }
+.limit--struck .cap__word { cursor: default; }
+.cap .cap__num:disabled {
+  background: transparent;
+  border-color: var(--rule-soft);
+  border-bottom-color: var(--rule);
+  color: var(--ink-2);
+  cursor: default;
+}
+.cap .cap__num:disabled:hover { background: transparent; }
+
+/* What the ceiling is actually being measured against, printed beside it. */
+.cap__tally {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding-left: 0.7rem;
+  border-left: var(--line-soft);
+  font-family: var(--data);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* The general explanation, under the sentence about this job in particular:
+   one is what will happen here, the other is what the control is for. */
+.cap__help--aside { color: var(--ink-3); }
+/* The server refused the figure. Ribbon, because the control did not do what it
+   said it would. */
+.cap__help--warn { color: var(--ribbon-deep); }
+
+/* --- Every job at once ----------------------------------------------------
+   Two plates under the orders slip, each swinging both ways. They are set as
+   plates and not as quiet links because they act on the whole register at once,
+   and a control with that reach must not read as an aside.                  */
+
+.bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 0.9rem;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: var(--line-soft);
+}
+.bulk form { margin: 0; }
+.bulk__legend {
+  flex-basis: 100%;
+  margin: 0;
+  font: 400 0.6rem/1 var(--legend);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.bulk__note {
+  flex-basis: 100%;
+  margin: 0;
+  max-width: 68ch;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+
+/* The register's own housekeeping, ruled off from the two plates above it.
+   Those act once on every job; this one is a standing instruction about which
+   records the register keeps at all, so it takes its own line and its own rule
+   rather than sitting in the row as a third press. */
+.bulk__rule {
+  flex-basis: 100%;
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: var(--line-soft);
+}
+/* The plates above sit on one baseline; this box's own clause wraps under it,
+   so the mark aligns to the legend rather than to the block. */
+.bulk__rule .cap { align-items: center; }
+.bulk__rule .cap__help { max-width: 68ch; }
+
+/* A quiet link printed inside a flash, handing back the one thing the action
+   let go of. It sits on the sentence's own baseline and never becomes a second
+   plate — the flash reports, it does not offer. */
+.linkout--flash { margin-left: 0.15rem; vertical-align: baseline; }
+
+/* A figure the stream may strike out as well as in, so its line is always in
+   the document and taken away here rather than never printed. */
+.facts > div.is-hidden,
+.ledger__line.is-hidden { display: none; }
+
+/* --- The tip: a printed marginal note -------------------------------------
+   A drawn mark you can hover or tab to; the note prints under it on stock,
+   ruled on all four sides like a slip laid on the form. No shadow, no float
+   animation — it is either printed or it is not.                            */
+
+.tip { display: inline-block; }
+.tip__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: 700 0.62rem/1 var(--legend);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 4px;
+  cursor: help;
+}
+.tip__mark .ico { width: 13px; height: 13px; }
+.tip__mark:hover { color: var(--ribbon-deep); text-decoration-color: var(--ribbon); }
+
+/* Anchored to the field, not to the mark: the mark is an inline word that sits
+   at a different x at every width, and a note hung off it either runs past the
+   sprocket margin or lands off-screen. The field's own box is the one edge that
+   is correct at every width. */
+.tip__body {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--ink);
+  outline: 1px solid var(--ink);
+  outline-offset: 2px;
+  background: var(--stock-lift);
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  /* Kept in the layout for screen readers; hidden from sight until asked for. */
+  opacity: 0;
+  visibility: hidden;
+}
+.tip__body b { color: var(--ink); }
+.tip:hover .tip__body,
+.tip:focus-within .tip__body { opacity: 1; visibility: visible; }
+
+/* --- The source kind ------------------------------------------------------
+   Which of the two things a job copies from, stamped before the name so the
+   register never leaves you guessing which one a record is.                 */
+
+.kindmark {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0.1rem 0.34rem;
+  border: 1px solid var(--rule);
+  font: 700 0.58rem/1.3 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  vertical-align: 0.08em;
+}
+
+/* --- Plates and links ---------------------------------------------------- */
+
+.plate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid var(--ink);
+  outline: 1px solid var(--ink);
+  outline-offset: 2px;
+  background: var(--ink);
+  color: var(--stock-lift);
+  font: 700 0.66rem/1 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease), transform 0.1s var(--ease);
+}
+.plate:hover { background: var(--stock-lift); color: var(--ink); }
+.plate:active { transform: translateY(1px); }
+.plate:focus-visible { outline: 2px solid var(--ribbon); outline-offset: 3px; }
+.plate[disabled] {
+  background: transparent;
+  color: var(--ink-3);
+  border-color: var(--rule);
+  outline-color: var(--rule);
+  cursor: not-allowed;
+}
+.plate--small { padding: 0.5rem 0.8rem; font-size: 0.6rem; }
+.plate--stop { background: var(--ribbon); border-color: var(--ribbon); outline-color: var(--ribbon); }
+.plate--stop:hover { background: var(--stock-lift); color: var(--ribbon-deep); }
+
+.linkout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: 700 0.6rem/1 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--rule);
+  cursor: pointer;
+}
+.linkout:hover { color: var(--ribbon); text-decoration-color: var(--ribbon); }
+.linkout--quiet { color: var(--ink-3); }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1.5rem;
+  margin-top: 1.5rem;
+}
+.controls form { margin: 0; }
+/* The row takes 1.5rem of air above it; whatever is printed after it takes the
+   same. A plate carries a second rule drawn 3px outside its box, so a note
+   inheriting only its own 0 top margin lands on that rule rather than under it. */
+.controls + * { margin-top: 1.5rem; }
+/* The start form carries the run ceiling above its plate: the ceiling is a
+   setting for the run about to be submitted, so it reads before the control
+   that submits it. */
+.controls__run {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+.controls__note {
+  font-size: 0.78rem;
+  color: var(--ribbon-deep);
+}
+/* The re-check control carries its own explanation, because the one thing an
+   operator cannot see from the listing is that the listing was read once. */
+.controls__recheck {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  max-width: 26rem;
+}
+.controls__recheck .controls__note { color: var(--ink-3); }
+
+/* --- Register ------------------------------------------------------------ */
+
+.register { list-style: none; margin: 0; padding: 0; }
+.register > li {
+  border-top: var(--line);
+  padding-inline: var(--gutter);
+  margin-inline: calc(-1 * var(--gutter));
+}
+.register > li:last-child { border-bottom: var(--line); }
+
+.entry {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) minmax(0, 15rem);
+  gap: 1.2rem 1.6rem;
+  padding: 1.15rem 0;
+}
+.register > li:hover { background: var(--stock-lift); }
+.entryform .field input, .entryform .field textarea { position: relative; }
+
+.entry__ref {
+  display: block;
+  text-decoration: none;
+  border-right: var(--line-soft);
+  padding-right: 1rem;
+}
+.entry__ref-num {
+  display: block;
+  font: 800 1.75rem/0.95 var(--legend);
+  letter-spacing: -0.04em;
+}
+.entry__ref-label {
+  display: block;
+  margin-top: 0.3rem;
+  font: 400 0.6rem/1 var(--legend);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.entry__ref:hover .entry__ref-num { color: var(--ribbon); }
+
+.entry__title { font-family: var(--data); font-size: 1.02rem; line-height: 1.3; }
+.entry__title a { text-decoration: none; }
+.entry__title a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.entry__source {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+.entry__owner, .jobhead__owner { color: var(--ink-3); }
+.entry__note {
+  margin-top: 0.7rem;
+  padding-left: 0.7rem;
+  border-left: 1px solid var(--ribbon);
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  max-width: 68ch;
+}
+.entry__note.is-hidden { display: none; }
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 1.6rem;
+  margin: 0.75rem 0 0;
+}
+.facts > div { display: flex; align-items: baseline; gap: 0.5rem; }
+.facts dt {
+  font: 400 0.62rem/1.6 var(--legend);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.facts dd { margin: 0; font-size: 0.82rem; font-weight: 700; }
+.facts--wide { gap: 0.4rem 2.4rem; margin-top: 1.2rem; }
+.facts--wide dt { font-size: 0.64rem; }
+.facts--wide dd { font-size: 0.95rem; }
+
+.entry__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+.entry__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 1.1rem;
+}
+.entry__actions form { margin: 0; }
+
+/* Stamps. State is carried by the word and the drawn mark, never by colour
+   alone — colour only reinforces what the label already says. */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.7rem;
+  border: 1px solid var(--ink-2);
+  font: 700 0.62rem/1 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.stamp--complete { border: var(--line-heavy); color: var(--ink); box-shadow: inset 0 0 0 3px var(--stock); outline: 1px solid var(--ink); outline-offset: 0; }
+.stamp--running { border-color: var(--ink); color: var(--ink); background: var(--band); }
+.stamp--held_quota {
+  border: 2px dashed var(--ribbon);
+  color: var(--ribbon-deep);
+}
+/* Held on the user's own ceiling, not on the credits: dashed like the other
+   hold, but struck in ink rather than ribbon, because nothing here went wrong
+   and nothing is waiting on the clock. */
+.stamp--held_limit {
+  border: 2px dashed var(--ink);
+  color: var(--ink);
+}
+.stamp--failed { border: 2px solid var(--ribbon); color: var(--ribbon-deep); }
+.stamp--cancelled { border-style: dotted; }
+.stamp--pending { border-style: dashed; border-width: 1px; color: var(--ink-3); }
+.stamp--absent { border-style: dotted; border-width: 1px; color: var(--ink-2); }
+
+/* Tally: a ruled bar struck solid, not a rounded progress pill. */
+.tally {
+  position: relative;
+  height: 9px;
+  margin-top: 0.85rem;
+  border: 1px solid var(--ink);
+  background: var(--stock-lift);
+  max-width: 32rem;
+}
+/* --pct is a 0..1 scale factor: the bar grows by transform so a long playlist mirror
+   never repaints layout once a second. */
+.tally__fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--ink);
+  transform: scaleX(var(--pct, 0));
+  transform-origin: left center;
+  transition: transform 0.5s var(--ease);
+}
+.tally--large { height: 24px; max-width: none; }
+.tally--large .tally__fill { position: absolute; left: 0; top: 0; bottom: 0; }
+/* The figure reads as a printed box struck at the end of the bar, so it stays
+   legible whether or not the fill has reached it. */
+.tally__figure {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 0.6rem;
+  border-left: 1px solid var(--ink);
+  background: var(--stock-lift);
+  color: var(--ink);
+  font: 700 0.66rem/1 var(--legend);
+  letter-spacing: 0.1em;
+}
+
+/* --- Empty state --------------------------------------------------------- */
+
+.empty {
+  border: 1px dashed var(--rule);
+  padding: 2.2rem clamp(1rem, 3vw, 2.2rem);
+  background: var(--stock-lift);
+  margin-bottom: 1.5rem;
+}
+.empty__mark { color: var(--rule); margin-bottom: 0.9rem; }
+.empty__mark .ico { width: 28px; height: 28px; stroke-width: 1.2; }
+.empty__lead {
+  font: 700 0.8rem/1 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+.empty p:last-child { max-width: 64ch; color: var(--ink-2); font-size: 0.85rem; }
+
+/* --- Job head ------------------------------------------------------------ */
+
+.jobhead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1.4rem;
+  padding-bottom: 1.1rem;
+  border-bottom: var(--line);
+}
+.jobhead__ref { display: flex; flex-direction: column; padding-right: 1.4rem; border-right: var(--line-soft); }
+.jobhead__ref span { font: 800 2.4rem/0.9 var(--legend); letter-spacing: -0.04em; }
+.jobhead__ref em {
+  font: 400 0.6rem/1 var(--legend);
+  font-style: normal;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-top: 0.4rem;
+}
+.jobhead__id h2 { font-family: var(--data); font-size: clamp(1.05rem, 1.5vw, 1.35rem); line-height: 1.25; }
+.jobhead__source { margin-top: 0.35rem; color: var(--ink-2); font-size: 0.85rem; }
+.jobhead__cid { color: var(--ink-3); font-size: 0.76rem; }
+
+/* An entry the source cannot serve is a fact about the source, not a fault of
+   this job — so it is set as a note in ink, not as a ribbon warning. */
+.jobnote {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  max-width: 72ch;
+  margin-top: 0.9rem;
+  padding-left: 0.8rem;
+  border-left: 1px solid var(--ink-2);
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.jobnote--fault { border-left-color: var(--ribbon); color: var(--ribbon-deep); }
+.jobnote__icon { flex: 0 0 auto; width: 13px; height: 13px; transform: translateY(2px); }
+
+.plan__caveat {
+  margin-top: 1.1rem;
+  padding: 0.85rem 1rem;
+  border: 1px dashed var(--ribbon);
+  background: var(--ribbon-wash);
+  color: var(--ribbon-deep);
+  font-size: 0.82rem;
+  max-width: 72ch;
+}
+
+/* --- Record listing ------------------------------------------------------ */
+
+.listing__phase {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.4rem;
+  margin-top: 0.7rem;
+  font: 700 0.6rem/1.4 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.listing__phase.is-hidden { display: none; }
+.listing__rate, .listing__eta { color: var(--ink-3); font-weight: 400; }
+
+.listing { border-top: var(--line-heavy); }
+
+.listing__cols, .rec, .running {
+  display: grid;
+  grid-template-columns: 4.5rem 6.5rem minmax(0, 1fr) 8.5rem;
+  gap: 0 1rem;
+  align-items: baseline;
+  padding: 0.28rem var(--gutter) 0.28rem 0.8rem;
+  margin: 0 calc(-1 * var(--gutter));
+  padding-left: calc(var(--gutter) + 0.2rem);
+}
+.listing__cols {
+  font: 400 0.6rem/1.8 var(--legend);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: var(--line);
+}
+
+.running {
+  position: relative;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  background: var(--ink);
+  color: var(--stock-lift);
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  font-weight: 700;
+}
+.running.is-hidden { display: none; }
+/* The print head, sitting on the line about to be struck. */
+.running__caret {
+  position: absolute;
+  left: calc(var(--gutter) - 0.55rem);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 9px;
+  height: 1.05em;
+  background: var(--band);
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%);
+  animation: strike-head 1.05s var(--ease) infinite;
+}
+.running__pos { color: var(--band); }
+.running__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.records { list-style: none; margin: 0; padding: 0; }
+
+/* Greenbar: three lines banded, three lines clear. */
+.rec:nth-child(6n+1), .rec:nth-child(6n+2), .rec:nth-child(6n+3) { background: var(--band); }
+.rec { font-size: 0.8rem; }
+.rec--failed { color: var(--ribbon-deep); }
+/* Not an error: the source listed a video that no longer exists. Struck through
+   in ink, so it reads as a line the printer passed over rather than a fault. */
+.rec--skipped { color: var(--ink-3); }
+.rec--skipped .rec__title { text-decoration: line-through; text-decoration-thickness: 1px; }
+.rec__pos { color: var(--ink-3); }
+.rec--failed .rec__pos { color: var(--ribbon); }
+.rec__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font: 400 0.6rem/1 var(--legend);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.rec__state .ico { width: 11px; height: 11px; }
+.rec__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec__id { color: var(--ink-3); font-size: 0.78rem; text-align: right; }
+.rec--failed .rec__id { color: var(--ribbon); }
+.rec__msg {
+  grid-column: 3 / -1;
+  font-size: 0.78rem;
+  color: var(--ribbon-deep);
+}
+/* Ribbon is for state this job is responsible for. A source entry that no
+   longer exists is neither a fault nor something a resume can fix. */
+.rec--skipped .rec__msg { color: var(--ink-3); }
+.rec--fresh { animation: strike-in 0.42s var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms); }
+
+.listing__empty {
+  padding: 2rem 0;
+  color: var(--ink-3);
+  font-size: 0.85rem;
+  max-width: 60ch;
+}
+.listing__empty.is-hidden { display: none; }
+
+/* --- Setup --------------------------------------------------------------- */
+
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+.step {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 1.4rem;
+  padding: 1.5rem 0;
+  border-top: var(--line);
+}
+.step:last-child { border-bottom: var(--line); }
+.step__num {
+  font: 800 1.75rem/0.9 var(--legend);
+  letter-spacing: -0.04em;
+  color: var(--ink-3);
+}
+.step--done .step__num { color: var(--ink); }
+.step__body h3 {
+  font: 700 0.7rem/1.3 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+.step__body p { max-width: 68ch; margin-bottom: 0.7rem; font-size: 0.86rem; }
+.step__aside {
+  padding-left: 0.8rem;
+  border-left: 1px solid var(--rule);
+  color: var(--ink-2);
+  font-size: 0.8rem;
+}
+
+/* One well, two contents: the file a step asks for, and the figure a step asks
+   for. Not a second bounded container — the same dashed blank on the form. */
+.upload,
+.blank {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0.9rem 0 1.1rem;
+  padding: 0.9rem;
+  border: 1px dashed var(--rule);
+  background: var(--stock-lift);
+}
+.upload__field { display: flex; flex-direction: column; gap: 0.5rem; }
+.upload__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font: 700 0.6rem/1 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.upload input[type='file'] { font-family: var(--data); font-size: 0.78rem; max-width: 100%; }
+.upload input[type='file']::file-selector-button {
+  font: 700 0.62rem/1 var(--legend);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.7rem;
+  margin-right: 0.7rem;
+  border: var(--line);
+  background: var(--stock);
+  color: var(--ink);
+  cursor: pointer;
+}
+.upload input[type='file']::file-selector-button:hover { background: var(--ink); color: var(--stock-lift); }
+
+/* Takes the slack so the plate sits at the well's right edge, the way the
+   upload's does, and drops below only when the clause itself needs the width. */
+.blank__set {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+.blank__legend {
+  font: 700 0.6rem/1 var(--legend);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+/* Typed, never stepped — the same refusal of the browser's rounded, shaded
+   spinner that the run-limit figure makes. The well is lifted stock, so the
+   blank inside it drops back to plain stock to stay a blank. */
+.blank__num {
+  appearance: textfield;
+  -moz-appearance: textfield;
+  width: 7rem;
+  padding: 0.45rem 0.55rem;
+  border: var(--line);
+  border-bottom: var(--line-heavy);
+  background: var(--stock);
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 0.9rem;
+  caret-color: var(--ribbon);
+}
+.blank__num::-webkit-outer-spin-button,
+.blank__num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.blank__num:hover { background: var(--stock-hover); }
+.blank__text {
+  flex: 1 1 18rem;
+  min-width: 0;
+  padding: 0.45rem 0.55rem;
+  border: var(--line);
+  border-bottom: var(--line-heavy);
+  background: var(--stock);
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 0.9rem;
+  caret-color: var(--ribbon);
+}
+.blank__text::placeholder { color: var(--ink-3); }
+.blank__text:hover { background: var(--stock-hover); }
+.blank__unit {
+  font: 400 0.6rem/1 var(--legend);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.trouble { margin: 0; }
+.trouble dt {
+  font: 700 0.7rem/1.4 var(--legend);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-top: 1rem;
+  border-top: var(--line);
+}
+.trouble dd {
+  margin: 0.5rem 0 1rem;
+  max-width: 68ch;
+  color: var(--ink-2);
+  font-size: 0.85rem;
+}
+
+/* --- The form's end ------------------------------------------------------
+   Where the paper is torn off: a struck rule, a gap, a perforation.        */
+
+.form__end {
+  position: relative;
+  height: 0;
+  margin: 0 var(--gutter) 2.5rem;
+  border-top: var(--line-heavy);
+}
+.form__end::after {
+  content: '';
+  position: absolute;
+  inset: 0.7rem 0 auto;
+  border-top: 1px dashed var(--rule);
+}
+
+/* Below the tear, in the register of a printer's own marking: quiet, small,
+   and never competing with anything above it. */
+.form__stamp {
+  /* Two right-aligned lines is the safe default, because the version carries a
+     build string on every non-release image and there is no width at which a
+     row of this is guaranteed to fit. */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  /* Stacked, the link sits on the second line, so nothing pushes the first line
+     of type down and the original pull-up under the perforation is unchanged.
+     Only the bottom gives back the link's own trailing padding. */
+  margin: -1.6rem var(--gutter) 1.5rem;
+  font-family: var(--legend);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-3);
+  text-align: right;
+}
+/* Division by a drawn rule, as everywhere else on the form. Printed only in the
+   row state below: a rule left standing beside a stack divides nothing. */
+.form__stamp-rule { display: none; }
+/* The imprint's permanent items are equals: the source link drops to the micro
+   floor's own weight and tracking so neither out-shouts the other. */
+.linkout--imprint {
+  color: inherit;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+}
+/* A release waiting is state, so it earns the second ribbon. The words and the
+   underline carry the message without colour, and the external mark says the
+   action leaves this application. */
+.linkout--update {
+  color: var(--ribbon-deep);
+  font-weight: 700;
+  text-decoration-color: var(--ribbon);
+}
+.linkout--update:hover { color: var(--ribbon); }
+
+/* Wide enough that the imprint sets as one line even with a build string and
+   the optional release notice, so the row is set `nowrap` and the
+   wrapped-but-still-a-row state -- the one that would strand a rule -- cannot
+   happen.
+   The link's tap padding makes the row taller than the single printed line this
+   replaced, so the pull-up under the perforation is deepened by half that growth
+   and the bottom margin gives the same half back. */
+@media (min-width: 900px) {
+  .form__stamp {
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0 0.9rem;
+    margin: -2.1rem var(--gutter) 1.5rem;
+  }
+  .form__stamp > span:first-child { white-space: nowrap; }
+  .form__stamp-rule {
+    display: block;
+    flex: none;
+    width: 1px;
+    height: 0.85rem;
+    background: var(--rule-soft);
+  }
+  .linkout--imprint { white-space: nowrap; }
+}
+
+/* --- Motion --------------------------------------------------------------
+   One authored moment: a record striking onto the form as the printer
+   advances. Everything else holds still.                                   */
+
+@keyframes strike-in {
+  0%   { opacity: 0; transform: translateY(-7px); filter: blur(1.6px); }
+  55%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+/* The head rests on the line, then strikes. A hammer rhythm, not a text caret. */
+@keyframes strike-head {
+  0%, 62%  { transform: translateY(-50%) scaleY(1); opacity: 1; }
+  70%      { transform: translateY(-50%) scaleY(0.55); opacity: 0.55; }
+  82%, 100% { transform: translateY(-50%) scaleY(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    animation-delay: 0s !important;
+  }
+  .running__caret { opacity: 1; }
+}
+
+/* --- Narrow widths -------------------------------------------------------
+   The sprocket margins narrow but never disappear: the form keeps its edges. */
+
+@media (max-width: 1000px) {
+  .entry { grid-template-columns: 4.5rem minmax(0, 1fr); }
+  .entry__side { grid-column: 2; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.2rem; }
+  .listing__cols, .rec { grid-template-columns: 3.5rem 5.5rem minmax(0, 1fr); }
+  .rec__id, .listing__cols .col--id { display: none; }
+  .rec__msg { grid-column: 2 / -1; }
+}
+
+@media (max-width: 820px) {
+  /* An odd charged run ends on a hidden cell, so the next visible one carries
+     it: the meter rounds the charge up, never down. */
+  .cell--charge-edge { background: var(--ink); border-right-color: rgba(233, 229, 214, 0.16); }
+  /* One visible cell = 2% of the day. The proportions hold and the ruled
+     decade marks stay a scale rather than closing into a solid bar. */
+  .strip__cells .cell:nth-child(odd) { display: none; }
+}
+
+@media (max-width: 720px) {
+  :root { --sprocket: 20px; --gutter: 1rem; }
+  .sprocket { background-size: 100% 30px; background-image:
+    radial-gradient(circle at 50% 50%, var(--punch) 0 3.4px, var(--rule-soft) 3.4px 3.9px, transparent 4px); }
+  .masthead { align-items: flex-start; flex-direction: column; }
+  .entryform { grid-template-columns: minmax(0, 1fr); }
+  .entryform__submit { justify-content: stretch; }
+  .entryform__submit .plate { width: 100%; justify-content: center; }
+  .jobhead { grid-template-columns: auto minmax(0, 1fr); }
+  .jobhead__ref span { font-size: 1.75rem; }
+  .jobhead .stamp { grid-column: 1 / -1; justify-self: start; }
+  .entry { grid-template-columns: 3.5rem minmax(0, 1fr); gap: 0.9rem 1rem; }
+  .entry__ref-num { font-size: 1.35rem; }
+  /* The disposition column narrows to its drawn mark rather than vanishing:
+     added and skipped stay distinguishable by shape, not by colour. */
+  .listing__cols, .rec, .running { grid-template-columns: 3rem 1.25rem minmax(0, 1fr); }
+  .running { grid-template-columns: 3rem minmax(0, 1fr); }
+  .listing__cols .col--state { font-size: 0; }
+  .rec__state span { display: none; }
+  .rec__msg { grid-column: 3 / -1; white-space: normal; }
+  .cap--order { grid-template-columns: auto minmax(0, 1fr); }
+  /* A register record's body is about 230px wide on a phone, which the ceiling's
+     clause does not fit on one line. It breaks at its own joints rather than
+     inside its legends: the legend takes the line above, the figure and its unit
+     stay together on the next. */
+  .cap--inline .cap__set { flex-wrap: wrap; margin-left: 0; }
+  .cap--inline .cap__label { flex-basis: 100%; }
+  .cap .cap__label, .cap__unit { white-space: nowrap; }
+  .cap__tally { padding-left: 0; border-left: 0; }
+  .setform__save { grid-column: 1 / -1; justify-self: start; }
+  .step { grid-template-columns: 2.2rem minmax(0, 1fr); gap: 0.9rem; }
+  .step__num { font-size: 1.35rem; }
+  /* The allocation line wraps rather than crushing the meter: legend and
+     figure share the first row, the meter takes the second. */
+  .alloc__row { flex-wrap: wrap; gap: 0.35rem 0.9rem; }
+  .alloc__legend { order: 1; }
+  .alloc__figure { order: 2; margin-left: auto; }
+  .strip__cells { order: 3; flex-basis: 100%; }
+}

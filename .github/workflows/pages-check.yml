@@ -1,0 +1,34 @@
+name: Docs build check
+
+# Build-only. Never publishes anything: no pages permission, no artifact upload, no deploy
+# job. Catches a broken docs build on the pull request instead of only at publish time.
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/workflows/pages*.yml'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: ./docs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build with VitePress
+        # VitePress fails the build on dead markdown page links.
+        run: npm run docs:build

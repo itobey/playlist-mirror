@@ -1,0 +1,13 @@
+# Keep the build context limited to files copied by Dockerfile.
+*
+
+!requirements.txt
+
+!app/
+!app/**
+
+!templates/
+!templates/**
+
+!static/
+!static/**

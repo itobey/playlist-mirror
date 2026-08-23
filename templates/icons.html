@@ -1,0 +1,69 @@
+{#
+  One drawn icon system: 16px grid, 1.5 stroke, butt caps, no fills.
+  Every glyph in this app comes from here — no unicode stand-ins.
+#}
+{% macro icon(name, cls='') %}
+<svg class="ico {{ cls }}" viewBox="0 0 16 16" width="16" height="16" fill="none"
+     stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"
+     aria-hidden="true" focusable="false">
+{%- if name == 'check' -%}
+  <path d="M2.5 8.5 L6 12 L13.5 4"/>
+{%- elif name == 'cross' -%}
+  <path d="M3.5 3.5 L12.5 12.5 M12.5 3.5 L3.5 12.5"/>
+{%- elif name == 'alert' -%}
+  <path d="M8 2 L14.5 13.5 L1.5 13.5 Z"/><path d="M8 6.5 V9.5 M8 11.4 V11.6"/>
+{%- elif name == 'hold' -%}
+  <path d="M2 8 H5.5 M10.5 8 H14"/><path d="M6.5 4 V12 M9.5 4 V12"/>
+{#- A run stopped at a ceiling the user set: the advance runs up into a rule and
+    goes no further. Deliberately not the pause bars, which mean the credits. -#}
+{%- elif name == 'ceiling' -%}
+  <path d="M2.5 3 H13.5"/><path d="M8 13.5 V5.5"/><path d="M4.5 9 L8 5.5 L11.5 9"/>
+{%- elif name == 'run' -%}
+  <path d="M3 2.5 L13 8 L3 13.5 Z"/>
+{%- elif name == 'stop' -%}
+  <path d="M3.5 3.5 H12.5 V12.5 H3.5 Z"/>
+{%- elif name == 'resume' -%}
+  <path d="M2.5 2.5 V13.5"/><path d="M5 2.5 L14 8 L5 13.5 Z"/>
+{%- elif name == 'submit' -%}
+  <path d="M2 8 H13"/><path d="M9 4 L13 8 L9 12"/>
+{%- elif name == 'remove' -%}
+  <path d="M2.5 4 H13.5"/><path d="M6.5 4 V2.5 H9.5 V4"/><path d="M4 4 L4.8 13.5 H11.2 L12 4"/>
+{#- Reading the source a second time: the same arrow as 'submit', struck twice
+    and running back. Deliberately not the circular sync arrows, which promise
+    something automatic and continuous — this happens once, when asked. -#}
+{%- elif name == 'recheck' -%}
+  <path d="M2.5 5.5 H13.5"/><path d="M10.5 2.5 L13.5 5.5 L10.5 8.5"/>
+  <path d="M13.5 10.5 H2.5"/><path d="M5.5 7.5 L2.5 10.5 L5.5 13.5"/>
+{#- A daily run: the job runs itself, every credit day, for as long as it
+    has anything left to add. This is the one place the circular arrow is
+    honest — 'recheck' refuses it precisely because that action happens once,
+    when asked, and this one is the automatic, repeating thing the loop draws.
+    The gap in the ring is where the day's credits have to arrive. -#}
+{%- elif name == 'standing' -%}
+  <path d="M8 2.5 A5.5 5.5 0 1 1 2.5 8"/><path d="M0.5 10.5 L2.5 8 L4.5 10.5"/>
+{#- Word sent out: a point and two arcs leaving it. Deliberately not Telegram's
+    paper plane — that is somebody's logo, and this icon set draws its own. -#}
+{%- elif name == 'signal' -%}
+  <circle cx="4" cy="8" r="1.25"/>
+  <path d="M7.5 4.5 A5 5 0 0 1 7.5 11.5"/>
+  <path d="M10 3 A7.8 7.8 0 0 1 10 13"/>
+{%- elif name == 'external' -%}
+  <path d="M9 2.5 H13.5 V7"/><path d="M13.5 2.5 L7.5 8.5"/><path d="M11 9.5 V13.5 H2.5 V5 H6.5"/>
+{%- elif name == 'clock' -%}
+  <circle cx="8" cy="8" r="6"/><path d="M8 4.5 V8 L10.5 9.5"/>
+{%- elif name == 'punch' -%}
+  <circle cx="8" cy="8" r="5.5"/><path d="M8 5 V11 M5 8 H11"/>
+{%- elif name == 'upload' -%}
+  <path d="M8 11 V2.5"/><path d="M4.5 6 L8 2.5 L11.5 6"/><path d="M2.5 10.5 V13.5 H13.5 V10.5"/>
+{#- Ruling the tally off and starting the count on a fresh line: a carriage
+    return, which is what the machine did at the end of a printed line. Not the
+    circular arrow, which would promise the credits themselves came back. -#}
+{%- elif name == 'return' -%}
+  <path d="M13.5 2.5 V8.5 H3.5"/><path d="M7 5 L3.5 8.5 L7 12"/>
+{%- elif name == 'chev' -%}
+  <path d="M3.5 6 L8 10.5 L12.5 6"/>
+{%- elif name == 'key' -%}
+  <circle cx="5" cy="8" r="3"/><path d="M8 8 H14"/><path d="M11.5 8 V11"/><path d="M13.5 8 V10.5"/>
+{%- endif -%}
+</svg>
+{%- endmacro %}

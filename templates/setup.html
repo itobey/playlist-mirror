@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+{% block title %}Google account — Playlist Mirror{% endblock %}
+
+{% block content %}
+
+<section class="block block--account" aria-labelledby="account-heading">
+  <div class="block__legend">
+    <h2 id="account-heading">Google account</h2>
+    <p>This instance talks to YouTube as one account, using your own Google Cloud project and
+       its own free daily API credits. Nothing is shared with anyone else.</p>
+  </div>
+
+  <dl class="ledger ledger--banded">
+    <div class="ledger__line">
+      <dt>OAuth client file</dt>
+      <dd>{% if conn.has_client_secret %}on file{% else %}<span class="miss">not yet added</span>{% endif %}</dd>
+    </div>
+    <div class="ledger__line ledger__line--total">
+      <dt>Account</dt>
+      <dd>{% if conn.connected %}{{ conn.account or 'connected' }}{% else %}<span class="miss">not connected</span>{% endif %}</dd>
+    </div>
+  </dl>
+
+  {% if conn.connected %}
+    <div class="controls">
+      <a class="plate" href="/">{{ icon('submit') }}<span>Go to playlists</span></a>
+      <form method="post" action="/setup/disconnect"
+            onsubmit="return confirm('Delete the stored token? You will have to sign in again.')">
+        <button class="linkout linkout--quiet" type="submit">{{ icon('remove') }}<span>Sign out</span></button>
+      </form>
+    </div>
+  {% endif %}
+</section>
+
+<section class="block block--steps" aria-labelledby="steps-heading">
+  <div class="block__legend">
+    <h2 id="steps-heading">One-time Google Cloud setup</h2>
+    <p>Google requires every app that touches your YouTube account to run inside a Cloud
+       project you control. Four steps, once, roughly ten minutes.</p>
+  </div>
+
+  <ol class="steps">
+    <li class="step">
+      <p class="step__num" aria-hidden="true">1</p>
+      <div class="step__body">
+        <h3>Create a project and enable the API</h3>
+        <p>In the <a href="https://console.cloud.google.com" target="_blank" rel="noopener">Google
+           Cloud Console</a>, create a project — any name. Then search the menu for
+           <strong>YouTube Data API v3</strong> and enable it for that project.</p>
+        <p class="step__aside">Do not point another tool at the same project — this app can only
+           count its own calls, so a second tool's spending would make the remaining figure read
+           higher than the truth, and playlist mirrors would hit the wall earlier than predicted.</p>
+
+        <form class="blank" id="allowance" method="post" action="/setup/allowance">
+          <div class="blank__set">
+            <label class="blank__legend" for="allowance-units">Daily allowance</label>
+            <input class="blank__num" id="allowance-units" name="units" type="number"
+                   inputmode="numeric" step="1" min="{{ allowance.floor }}"
+                   max="{{ allowance.ceiling }}" value="{{ allowance.limit }}" required>
+            <span class="blank__unit">units a day</span>
+          </div>
+          <button class="plate plate--small" type="submit">{{ icon('submit') }}<span>Set</span></button>
+        </form>
+
+        <p class="step__aside">A new project is granted <strong>10,000 units a day</strong>, and
+           that is what this app assumes. Change the figure only if Google granted this project
+           more — it takes effect on the next video, with no restart.
+           {%- if allowance.from_container %}
+             The figure above is the container's <code>QUOTA_DAILY_LIMIT</code>.
+           {%- else %}
+             The figure above was set here, and now governs; the container's
+             <code>QUOTA_DAILY_LIMIT</code> is
+             {{ '{:,}'.format(allowance.container_limit) }}.
+           {%- endif %}
+           At {{ '{:,}'.format(allowance.limit) }} units a playlist mirror adds about
+           <strong>{{ '{:,}'.format(allowance.videos_per_day) }} videos a day</strong>.
+           {%- if allowance.pinned_today %}
+             YouTube has already refused calls today, so today stays spent whatever is set here
+             and a larger figure first applies at the reset ({{ allowance.resets_in }}) — or the
+             moment you rule the count off yourself, with <b>Reset the count</b> on the credits
+             band at the top of this page.
+           {%- endif %}
+        </p>
+      </div>
+    </li>
+
+    <li class="step">
+      <p class="step__num" aria-hidden="true">2</p>
+      <div class="step__body">
+        <h3>Add yourself as a test user</h3>
+        <p>Under <strong>APIs &amp; Services</strong>, open <strong>OAuth consent screen</strong>
+           — called <strong>Audience</strong> in newer consoles. In <strong>Test users</strong>,
+           click <strong>+ Add users</strong> and enter the Google address you will sign in
+           with.</p>
+        <p class="step__aside">Skipping this is what produces
+           <em>Error 403: access_denied — has not completed the Google verification process</em>.
+           While the app's status is Testing, only listed test users can sign in. There is no
+           approval wait; access is immediate.</p>
+      </div>
+    </li>
+
+    <li class="step">
+      <p class="step__num" aria-hidden="true">3</p>
+      <div class="step__body">
+        <h3>Create an OAuth client and add its file here</h3>
+        <p>In <strong>Credentials</strong>, choose <strong>Create credentials → OAuth client
+           ID</strong>. Pick the application type that matches how you reach this app:
+           <strong>Desktop app</strong> if that is <code>localhost</code>,
+           <strong>Web application</strong> for any other address. Download the JSON and add
+           it below. It is written to this instance's data volume as
+           <code>client_secret.json</code> and never leaves this machine.</p>
+
+        <form class="upload" method="post" action="/setup/client-secret" enctype="multipart/form-data">
+          <label class="upload__field">
+            <span class="upload__label">{{ icon('upload') }} OAuth client JSON</span>
+            <input type="file" name="file" accept="application/json,.json" required>
+          </label>
+          <button class="plate plate--small" type="submit">{{ icon('submit') }}<span>Add file</span></button>
+        </form>
+
+        <p class="step__aside">Desktop-app clients accept any <code>http://localhost</code>
+           redirect without registration — and <em>only</em> those. They cannot have any other
+           redirect URI registered at all, so a desktop client that worked on localhost will
+           fail with <code>redirect_uri_mismatch</code> once you host this elsewhere. For any
+           other address use a <strong>Web application</strong> client, add this exact redirect
+           URI under <strong>Authorized redirect URIs</strong>:
+           <code class="pick">{{ conn.redirect_uri }}</code> — and set
+           <code>PUBLIC_BASE_URL</code> to match. Google requires that URI to be
+           <code>https://</code> on a real public TLD; the host itself does not have to be
+           reachable from the internet, only from your browser.</p>
+      </div>
+    </li>
+
+    <li class="step {% if conn.connected %}step--done{% endif %}">
+      <p class="step__num" aria-hidden="true">4</p>
+      <div class="step__body">
+        <h3>Sign in</h3>
+        <p>Google asks for permission to manage your YouTube account. The resulting token is
+           stored in the data volume, so this is a one-time step.</p>
+        <div class="controls">
+          {% if conn.has_client_secret %}
+            <a class="plate" href="/oauth/start">{{ icon('key') }}<span>{{ 'Sign in again' if conn.connected else 'Connect Google account' }}</span></a>
+          {% else %}
+            <button class="plate" type="button" disabled>{{ icon('key') }}<span>Connect Google account</span></button>
+            <p class="controls__note">Add the OAuth client file in step 3 first.</p>
+          {% endif %}
+        </div>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<section class="block block--trouble" aria-labelledby="trouble-heading">
+  <div class="block__legend">
+    <h2 id="trouble-heading">When sign-in goes wrong</h2>
+    <p>A handful of failures account for nearly all of them.</p>
+  </div>
+
+  <dl class="trouble">
+    <dt>“Error 400: redirect_uri_mismatch”</dt>
+    <dd>Google was sent a redirect URI the OAuth client does not accept. The one this instance
+        sends is <code class="pick">{{ conn.redirect_uri }}</code> — it must appear, character
+        for character, under <strong>Authorized redirect URIs</strong> on the client in
+        <strong>APIs &amp; Services → Credentials</strong>. Two things to check: that
+        <code>PUBLIC_BASE_URL</code> is set to the address you actually open this app at (an
+        unset one leaves it at <code>http://localhost:8000</code>, which is what gets sent from
+        behind a reverse proxy), and that the client is a <strong>Web application</strong> one —
+        a <strong>Desktop app</strong> client cannot register anything but
+        <code>http://localhost</code>, so it works locally and breaks everywhere else.</dd>
+
+    <dt>“Error 403: access_denied”</dt>
+    <dd>The account you signed in with is not a test user on that project. Add it in step 2, and
+        check you are adding it under the same project that owns the OAuth client. An incognito
+        window rules out signing in as a different cached account.</dd>
+
+    <dt>The browser shows “connection refused” after signing in</dt>
+    <dd>Nothing is listening on the redirect address. Confirm the container publishes its port
+        (<code>ports: "8000:8000"</code>) and that <code>PUBLIC_BASE_URL</code> matches the
+        address you actually opened this page at — currently
+        <code class="pick">{{ conn.redirect_uri }}</code>.</dd>
+
+    <dt>Sign-in loads a stale page from some other app</dt>
+    <dd>A service worker from a previous app on the same port is intercepting the callback. Clear
+        site data for that origin, use a private window, or move this app to a port nothing else
+        has ever used.</dd>
+  </dl>
+</section>
+
+{% endblock %}

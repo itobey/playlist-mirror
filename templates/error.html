@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+{% block title %}{{ code }} — Playlist Mirror{% endblock %}
+
+{% block content %}
+<section class="block block--error" aria-labelledby="error-heading">
+  <div class="jobhead">
+    <p class="jobhead__ref"><span>{{ code }}</span><em>fault</em></p>
+    <div class="jobhead__id">
+      <h2 id="error-heading">{% if code == 404 %}Nothing on file{% else %}The run stopped{% endif %}</h2>
+      <p class="jobhead__source">{{ detail }}</p>
+    </div>
+    {% if code == 404 %}
+      <p class="stamp stamp--absent">{{ icon('punch') }}<span>Not on file</span></p>
+    {% else %}
+      <p class="stamp stamp--failed">{{ icon('alert') }}<span>Fault</span></p>
+    {% endif %}
+  </div>
+
+  <div class="controls">
+    <a class="plate" href="/">{{ icon('submit') }}<span>Back to the register</span></a>
+    <a class="linkout" href="/setup">{{ icon('key') }}<span>Account</span></a>
+  </div>
+</section>
+{% endblock %}

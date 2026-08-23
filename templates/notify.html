@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+{% block title %}Telegram — Playlist Mirror{% endblock %}
+
+{% block content %}
+
+<section class="block block--account" aria-labelledby="tg-heading">
+  <div class="block__legend">
+    <h2 id="tg-heading">Telegram</h2>
+    <p>Where a daily run reports when it has run. Optional: playlist mirrors work exactly the same
+       without it — this only decides whether you hear about the ones that ran while you were
+       not looking. One message per credit day, covering every job that ran.</p>
+  </div>
+
+  <dl class="ledger ledger--banded">
+    <div class="ledger__line">
+      <dt>Bot token</dt>
+      <dd>{% if telegram.token %}{{ telegram.token }}{% else %}<span class="miss">not yet added</span>{% endif %}</dd>
+    </div>
+    <div class="ledger__line">
+      <dt>Chat</dt>
+      <dd>{% if telegram.chat %}{{ telegram.chat }}{% else %}<span class="miss">not set</span>{% endif %}</dd>
+    </div>
+    <div class="ledger__line">
+      <dt>Jobs reporting here</dt>
+      <dd>{{ telegram.notifying }} of {{ telegram.standing }} daily run{{ '' if telegram.standing == 1 else 's' }}</dd>
+    </div>
+    <div class="ledger__line ledger__line--total">
+      <dt>Last message</dt>
+      <dd>
+        {%- if telegram.last %}
+          {% if telegram.last.ok %}delivered{% else %}<span class="miss">not delivered</span>{% endif %}
+        {%- else %}none sent yet{% endif -%}
+      </dd>
+    </div>
+  </dl>
+
+  {% if telegram.last and not telegram.last.ok %}
+    <p class="jobnote jobnote--fault">{{ icon('alert', 'jobnote__icon') }}<span>{{ telegram.last.detail }}</span></p>
+  {% endif %}
+
+  <div class="controls">
+    <form method="post" action="/notify/test">
+      <button class="plate" type="submit"{% if not telegram.configured %} disabled{% endif %}>
+        {{ icon('signal') }}<span>Send a test message</span></button>
+    </form>
+    {% if not telegram.configured %}
+      <p class="controls__note">Both steps below have to be done first.</p>
+    {% endif %}
+    {% if telegram.token or telegram.chat %}
+      <form method="post" action="/notify/forget"
+            onsubmit="return confirm('Clear the bot token and chat? Daily runs keep running, they just report nowhere.')">
+        <button class="linkout linkout--quiet" type="submit">{{ icon('remove') }}<span>Forget these settings</span></button>
+      </form>
+    {% endif %}
+  </div>
+</section>
+
+<section class="block block--steps" aria-labelledby="tg-steps">
+  <div class="block__legend">
+    <h2 id="tg-steps">Setting it up</h2>
+    <p>Two steps, once, about three minutes. Telegram bots are free and there is nothing to
+       register — the bot you make here belongs to you and talks only to you.</p>
+  </div>
+
+  <ol class="steps">
+    <li class="step {% if telegram.token %}step--done{% endif %}">
+      <p class="step__num" aria-hidden="true">1</p>
+      <div class="step__body">
+        <h3>Make a bot and paste its token</h3>
+        <p>In Telegram, open <a href="https://t.me/BotFather" target="_blank" rel="noopener"
+           ><strong>@BotFather</strong></a> and send it <code>/newbot</code>. It asks for a name
+           and a username, then answers with a token that looks like
+           <code>7123456789:AAF-a1b2c3…</code>. Paste that whole line here.</p>
+
+        <form class="blank" method="post" action="/notify/token">
+          <div class="blank__set">
+            <label class="blank__legend" for="tg-token">Bot token</label>
+            <input class="blank__text" id="tg-token" name="token" type="password"
+                   autocomplete="off" spellcheck="false"
+                   placeholder="{{ '••••••••  leave blank to keep the one on file' if telegram.token else '7123456789:AAF-a1b2c3…' }}">
+          </div>
+          <button class="plate plate--small" type="submit">{{ icon('submit') }}<span>Save</span></button>
+        </form>
+
+        <p class="step__aside">The token is written to this instance's data volume and never
+           leaves this machine except to talk to Telegram. It is never printed back into this
+           page — only its bot number and last four characters are shown above, so a screenshot
+           of this page gives nothing away.
+           {%- if telegram.token_from_container %} The token in force came from the container's
+             <code>TELEGRAM_BOT_TOKEN</code>; saving one here replaces it.{% endif %}
+           Anyone holding this token can post as your bot, so treat it like a password: if it
+           leaks, send <code>/revoke</code> to @BotFather and paste the new one here.</p>
+      </div>
+    </li>
+
+    <li class="step {% if telegram.chat %}step--done{% endif %}">
+      <p class="step__num" aria-hidden="true">2</p>
+      <div class="step__body">
+        <h3>Tell the bot who to write to</h3>
+        <p>Open your new bot in Telegram — @BotFather links to it — and send it any message at
+           all. That single message is what lets it reply: Telegram never allows a bot to write
+           first. Then press the button below and this app reads your chat id straight off the
+           bot.</p>
+
+        <div class="controls">
+          <form method="post" action="/notify/discover">
+            <button class="plate" type="submit"{% if not telegram.token %} disabled{% endif %}>
+              {{ icon('recheck') }}<span>Find my chat</span></button>
+          </form>
+          {% if not telegram.token %}
+            <p class="controls__note">Save the bot token in step 1 first.</p>
+          {% endif %}
+        </div>
+
+        <p class="step__aside">Every guide answers “what is my chat id?” by telling you to
+           message some stranger's bot. You do not have to: your own bot already knows, and that
+           button asks it. If you would rather type it, a personal id is a plain number and a
+           group id is negative — put the bot in the group first, and post one message there.</p>
+
+        <form class="blank" method="post" action="/notify/chat">
+          <div class="blank__set">
+            <label class="blank__legend" for="tg-chat">Chat id</label>
+            <input class="blank__num" id="tg-chat" name="chat" type="text" inputmode="numeric"
+                   autocomplete="off" spellcheck="false" value="{{ telegram.chat or '' }}"
+                   placeholder="123456789">
+          </div>
+          <button class="plate plate--small" type="submit">{{ icon('submit') }}<span>Set</span></button>
+        </form>
+
+        {% if telegram.chat_from_container %}
+          <p class="step__aside">The chat in force came from the container's
+             <code>TELEGRAM_CHAT_ID</code>; setting one here replaces it.</p>
+        {% endif %}
+      </div>
+    </li>
+  </ol>
+</section>
+
+<section class="block block--trouble" aria-labelledby="tg-trouble">
+  <div class="block__legend">
+    <h2 id="tg-trouble">What arrives, and when</h2>
+    <p>The message is written for a phone, not for this page.</p>
+  </div>
+
+  <dl class="trouble">
+    <dt>One message, not one per job</dt>
+    <dd>Daily runs run one after another as the day's credits allow. The report goes out
+        once they have all finished, listing every job that ran, what it added, what is left,
+        and what it cost. Three jobs are one message, because to you they are one event.</dd>
+
+    <dt>Nothing runs, nothing is sent</dt>
+    <dd>A quiet day produces no message at all. There is no “nothing happened” ping to
+        train yourself to ignore, and no message when you start a playlist mirror by hand — you are
+        already watching that one.</dd>
+
+    <dt>A failed message never breaks a playlist mirror</dt>
+    <dd>If Telegram cannot be reached, the videos are still copied and the job still holds its
+        state; only the report is lost, and the reason for it is printed on this page. A
+        mirror's outcome never depends on a chat app being up.</dd>
+  </dl>
+</section>
+
+{% endblock %}

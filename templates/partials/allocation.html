@@ -1,0 +1,98 @@
+{% from "icons.html" import icon %}
+{% set cells = 100 %}
+{% set charged_cells = (allocation.percent_charged | round(0, 'ceil')) | int %}
+{# A single ruled line, not an instrument panel: the playlist mirror is the product, and
+   every figure here is a local estimate that must not read as a meter reading.
+   The whole explanation lives in one disclosure so the collapsed band stays a
+   band — but the collapsed band still carries the word "est.", because an
+   estimate presented as a measurement is the one thing this app must never do. #}
+<section class="alloc{% if allocation.exhausted %} alloc--spent{% endif %}" aria-labelledby="alloc-heading">
+  <div class="alloc__row">
+    <h2 id="alloc-heading" class="alloc__legend">Free Google Cloud API credits</h2>
+
+    <div class="strip__cells" role="img"
+         aria-label="{{ allocation.percent_charged }} percent of today's free credits used; {{ '{:,}'.format(allocation.remaining) }} units estimated left.">
+      {% for i in range(1, cells + 1) %}
+        <span class="cell
+          {%- if i <= charged_cells %} cell--charged
+          {%- elif i == charged_cells + 1 and charged_cells % 2 == 1 %} cell--charge-edge{% endif %}
+          {%- if i % 10 == 0 %} cell--decade{% endif %}"></span>
+      {% endfor %}
+    </div>
+
+    <p class="alloc__figure">
+      <span id="alloc-remaining">{{ '{:,}'.format(allocation.remaining) }}</span><span class="unit">of {{ '{:,}'.format(allocation.limit) }} left, est.</span>
+    </p>
+  </div>
+
+  <div class="alloc__foot">
+    {% if allocation.exhausted %}
+      <div class="alloc__hold">
+        <p class="alloc__state">{{ icon('hold', 'alloc__state-icon') }}<span>
+          {%- if allocation.pinned %}Used up — YouTube itself refused a call. They reset
+            {{ allocation.resets_in }}, and a paused playlist mirror resumes then.
+          {%- else %}Used up — they reset {{ allocation.resets_in }}, and a paused playlist mirror
+            resumes then.{% endif -%}
+        </span></p>
+
+        {# The reset time printed above is computed from a configured timezone, and a
+           configured timezone can be wrong — which is the one case where waiting is the
+           wrong answer. This rules the count off now so a playlist mirror may make the single
+           call that settles it. The note names the cost of being wrong out loud, because
+           a control that overrides the app's own wall has to. #}
+        <form class="alloc__redo" method="post" action="/allowance/reset">
+          <input type="hidden" name="back" value="{{ request.url.path }}">
+          <button class="linkout" type="submit">{{ icon('return', 'alloc__redo-mark') }}<span>Reset the count</span></button>
+          <span class="alloc__redo-note">
+            {%- if allocation.pinned %}Google's own answer, not a clock — this will very likely be refused again.
+            {%- else %}Only if that reset time is wrong for your project.{% endif -%}
+          </span>
+        </form>
+      </div>
+    {% endif %}
+
+    <details class="explain">
+      <summary>{{ icon('chev', 'explain__mark') }}<span>What does this mean?</span></summary>
+      <div class="explain__body">
+        <p>Every call this app makes to YouTube spends units from a daily allowance Google gives
+           your own Cloud project for free. There is nothing to buy and nothing to pay: the
+           allowance is <b>{{ '{:,}'.format(allocation.limit) }} units a day</b>, it costs
+           <b>50 units to add one video</b> to a playlist and 1 unit to read a page of the
+           channel, and it refills by itself. That is roughly
+           {{ '{:,}'.format(allocation.videos_per_day) }} videos a day — which is why a large
+           channel is copied across several days rather than in one run. What is left
+           today covers about <b id="alloc-videos">{{ '{:,}'.format(allocation.videos_affordable) }}</b>
+           more video{{ '' if allocation.videos_affordable == 1 else 's' }}. If Google granted
+           this project more than the free allowance, set it in
+           <a href="/setup#allowance">Google account</a>.</p>
+
+        <p>The bar above is this app's own tally, not a reading from YouTube. The API publishes
+           no remaining-quota endpoint, so every figure here is counted locally from the calls
+           this app has made since the last reset. If a second tool shares the same Google Cloud
+           project, its spending is invisible here and the remaining figure will read higher than
+           the truth. The authoritative signal is YouTube itself refusing a call; when that
+           happens the tally is pinned to the limit and the running playlist mirror holds immediately.</p>
+
+        <p>The reset is Google's clock, not this app's and not a timer started by your first
+           call: the credits refill at <b>midnight Pacific Time</b> every day. This app prints
+           that moment from the <code>{{ allocation.reset_tz }}</code> timezone, and if that is
+           wrong for your project the wall shown here outlasts the real one. <b>Reset the
+           count</b>, offered on this band whenever the credits read used up, rules today's
+           tally off the moment you press it, so the next playlist mirror puts the question to
+           YouTube rather than to this clock. It resets nothing at Google:
+           if the day really is spent, the first call comes back refused, that playlist mirror holds on
+           it exactly as it does at the wall, and the band reads used up again — one turned-away
+           call, charged no units, is the whole cost of being wrong.</p>
+
+        <p>Running out is expected, not a failure. The playlist mirror stops deliberately at the wall,
+           keeps the playlist it already created, and records exactly which videos are in it.
+           After the reset you press Resume and it continues into that same playlist, skipping
+           everything already added — no duplicates, no second playlist, nothing to redo.</p>
+
+        <p class="explain__meta">Free allowance {{ '{:,}'.format(allocation.limit|int) }} units a day ·
+           resets at {{ allocation.reset_tz }} midnight ({{ allocation.resets_in }}) ·
+           add a video 50 units · read a page 1 unit</p>
+      </div>
+    </details>
+  </div>
+</section>

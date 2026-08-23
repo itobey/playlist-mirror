@@ -1,0 +1,115 @@
+name: Release
+
+# The release path for this repo. fddb-exporter delegates this to the shared
+# itobey/workflow-templates release template, which is Maven/jar-shaped and does not fit a
+# Python project, so the same five steps are spelled out here instead:
+#
+#   1. bump __version__ in app/version.py   2. commit it   3. tag the commit
+#   4. build and push the image with no build stamp        5. publish the docs
+#
+# Steps 4 and 5 are the existing workflows, called with `uses:` at the release tag. The tag
+# is pushed with GITHUB_TOKEN, which by design does not trigger other workflows' `on: push`
+# - hence the explicit calls rather than relying on build-image.yml's tag trigger.
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Version to release, without a `v` prefix (e.g. 0.2.0)'
+        required: true
+        type: string
+
+jobs:
+  tag:
+    name: Bump and tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      ref: ${{ steps.tag.outputs.ref }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Bump, commit and tag
+        id: tag
+        env:
+          VERSION: ${{ inputs.release_version }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          # No `v` prefix: tags in these projects are bare (2.2.0, not v2.2.0), and
+          # build-image.yml's tag glob and the image tags follow that convention.
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::'$VERSION' is not a bare X.Y.Z version"
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/$VERSION" >/dev/null; then
+            echo "::error::tag $VERSION already exists"
+            exit 1
+          fi
+
+          # app/version.py is the single source of truth for the version, so the bump is
+          # this one line. Anchored so nothing else in the file can match.
+          python - <<'PY'
+          import os
+          import re
+
+          version = os.environ["VERSION"]
+          path = "app/version.py"
+          with open(path, encoding="utf-8") as fh:
+              source = fh.read()
+          bumped, count = re.subn(
+              r'^__version__ = ".*"$',
+              f'__version__ = "{version}"',
+              source,
+              count=1,
+              flags=re.MULTILINE,
+          )
+          if count != 1:
+              raise SystemExit(f"no __version__ assignment found in {path}")
+          with open(path, "w", encoding="utf-8", newline="\n") as fh:
+              fh.write(bumped)
+          PY
+
+          # There is no -SNAPSHOT counterpart to restore afterwards: Python has no such
+          # concept, and the +<branch>.<sha> stamp already says "this is not the release".
+          if git diff --quiet -- app/version.py; then
+            echo "::error::app/version.py already declares $VERSION - nothing to release"
+            exit 1
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/version.py
+          git commit -m "release $VERSION"
+          git tag "$VERSION"
+          git push origin "HEAD:$BRANCH"
+          git push origin "refs/tags/$VERSION"
+
+          echo "ref=refs/tags/$VERSION" >> "$GITHUB_OUTPUT"
+
+  image:
+    name: Image
+    needs: tag
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/build-image.yml
+    with:
+      ref: ${{ needs.tag.outputs.ref }}
+      release: true
+      tag: ${{ inputs.release_version }}
+
+  docs:
+    name: Docs
+    needs: [ tag, image ]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
+    with:
+      ref: ${{ needs.tag.outputs.ref }}

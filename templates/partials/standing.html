@@ -1,0 +1,70 @@
+{% from "icons.html" import icon %}
+
+{#
+  The daily run: one punch box that admits a second one.
+
+  The system's punch box is the only control that reveals another, and until now
+  what it revealed was a figure. Here it reveals a second box, on the same rule:
+  being told about a run only means anything when there is a run nobody watched,
+  so the notification cannot exist without the daily run above it. Both
+  legends therefore read complete on their own — the first names the condition
+  the run waits for, the second names what happens afterwards — and the reveal
+  is still a sibling selector with no script behind it.
+
+  The Set plate is the control for a browser submitting the form itself. With
+  scripting on it is removed by the `.js` class in CSS, because the boxes then
+  post themselves the moment they are struck.
+#}
+
+{% macro standing_order(job, back, telegram_ready, warn=True) %}
+<form class="setform standing" method="post" action="/jobs/{{ job.id }}/schedule"
+      data-standing data-job="{{ job.id }}">
+  <input type="hidden" name="back" value="{{ back }}">
+  <div class="cap cap--order">
+    <input class="cap__box" id="sched-{{ job.id }}" name="scheduled" type="checkbox" value="1"
+           {% if job.scheduled %}checked{% endif %}>
+    <label class="cap__word" for="sched-{{ job.id }}">Run this job daily, when credits allow</label>
+
+    <button class="plate plate--small setform__save" type="submit">
+      {{ icon('submit') }}<span>Set</span></button>
+
+    <div class="cap__set cap__set--order">
+      <span class="order__tell">
+        <input class="cap__box" id="tell-{{ job.id }}" name="notify_on" type="checkbox" value="1"
+               {% if job.notify %}checked{% endif %}>
+        <label class="cap__word cap__word--sub" for="tell-{{ job.id }}">
+          {{ icon('signal', 'order__tell-mark') }}Tell me on Telegram afterwards</label>
+      </span>
+
+      {# Suppressed on the register, whose summary carries this once for the
+         whole page; a fault repeated per record reads as several faults. #}
+      {% if warn and job.notify and not telegram_ready %}
+        <p class="order__warn">{{ icon('alert', 'order__warn-mark') }}<span>No bot token
+          and chat are set, so this message has nowhere to go.
+          <a href="/notify">Set up Telegram</a> — the run still happens either way.</span></p>
+      {% endif %}
+
+      <p class="cap__help" data-standing-note>{{ job.schedule_line }}</p>
+    </div>
+  </div>
+</form>
+{% endmacro %}
+
+
+{#
+  The mark printed on a job that has a daily run — a ruled legend in the
+  kind mark's family, not a stamp. A stamp says what a job's state is; this says
+  how it is operated, and the two must never be confused for one another.
+
+  Always in the document, hidden when no order stands: striking the box has to
+  put the mark on the row without a reload, and a mark the page builds in the
+  browser is a second copy of this markup to keep in step with this one.
+#}
+{% macro order_mark(job) %}
+<p class="ordermark{% if job.auto_blocked %} ordermark--blocked{% endif %}{% if not job.scheduled %} is-hidden{% endif %}"
+   data-order-mark="{{ job.id }}">
+  {{ icon('standing') }}<span>Daily run</span>
+  <span class="ordermark__tell{% if not job.notify %} is-hidden{% endif %}" data-order-tell>
+    {{ icon('signal') }}Telegram</span>
+</p>
+{% endmacro %}

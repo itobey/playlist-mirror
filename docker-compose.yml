@@ -1,0 +1,37 @@
+services:
+  playlist-mirror:
+    build: .
+    container_name: playlist-mirror
+    restart: unless-stopped
+    environment:
+      DATA_DIR: /app/data
+      # Must match the address you actually open in the browser — Google sends
+      # the sign-in back to PUBLIC_BASE_URL/oauth/callback.
+      PUBLIC_BASE_URL: http://localhost:8000
+      # The project's daily quota, and units held back so a run never spends
+      # the last of the allocation on an insert it cannot confirm. The quota
+      # only seeds the figure: setting it on the Google account page stores it
+      # in the database, and the stored value wins from then on.
+      QUOTA_DAILY_LIMIT: "10000"
+      QUOTA_RESERVE: "50"
+      QUOTA_RESET_TZ: America/Los_Angeles
+      PLAYLIST_PRIVACY: private
+      # How often a job marked "run it when credits allow" is checked. Purely a
+      # local check — the database and this app's own ledger, no API call.
+      SCHEDULER_INTERVAL: "60"
+      # Optional: where standing orders report when they have run. Both only
+      # seed the values; setting them on the Telegram page stores them in the
+      # database and the stored one wins from then on. Leave them out entirely
+      # and set them in the app instead — a token does not belong in a file you
+      # might commit.
+      # TELEGRAM_BOT_TOKEN: ""
+      # TELEGRAM_CHAT_ID: ""
+      # Where the anonymous ping goes. Counts and flags only, listed in full on
+      # the Privacy and telemetry page - no account, channel, playlist or video
+      # identifiers. Uncomment and set it to http://localhost:1 to switch the
+      # ping off; the app does not care whether it arrived.
+      # TELEMETRY_URL: http://localhost:1
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8000:8000"

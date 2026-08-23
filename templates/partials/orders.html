@@ -1,0 +1,36 @@
+{% from "icons.html" import icon %}
+
+{# The register's answer to the only two questions a daily run raises: how
+   many are on the books, and when the next one goes. Its own file because the
+   page updates it in place when a box is struck, and a second copy of this
+   sentence written in the browser is a second place for it to go wrong. #}
+
+{% if standing.count %}
+  <p class="orders">{{ icon('standing', 'orders__mark') }}<span>
+    <b>{{ standing.count }} daily run{{ '' if standing.count == 1 else 's' }}</b> —
+    {%- if standing.starts_soon %} the next starts within the minute.
+    {%- elif standing.waiting_for_credits %} today's free credits are used up, so the next
+      starts after the reset ({{ standing.resets_in }}).
+    {%- elif standing.due %} waiting for the playlist mirror already running.
+    {%- else %} all of them have run on today's credits; the next go after the reset
+      ({{ standing.resets_in }}).{% endif %}
+    {%- if standing.notifying %} {{ standing.notifying }} of them
+      report{{ '' if standing.notifying != 1 else 's' }} to Telegram, in a single message once
+      they have all run.{% endif %}
+  </span></p>
+
+  {% if standing.notify_unset %}
+    <p class="orders orders--warn">{{ icon('alert', 'orders__mark') }}<span>Those Telegram
+      reports have nowhere to go: no bot token and chat are set.
+      <a href="/notify">Set up Telegram</a>, or untick the notification — the runs happen
+      either way.</span></p>
+  {% endif %}
+
+  {% if standing.blocked %}
+    <p class="orders orders--warn">{{ icon('alert', 'orders__mark') }}<span>{{ standing.blocked }}
+      daily run{{ '' if standing.blocked == 1 else 's' }} will not start:
+      {{ 'that job' if standing.blocked == 1 else 'those jobs' }} stopped with a fault. A job
+      that failed is never retried unattended — resume it once by hand and its daily run
+      takes over again.</span></p>
+  {% endif %}
+{% endif %}

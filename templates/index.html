@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+{% from "partials/standing.html" import standing_order, order_mark %}
+{% from "partials/limit.html" import run_limit %}
+{% block title %}Playlists — Playlist Mirror{% endblock %}
+
+{% block content %}
+
+<section class="block block--entry" aria-labelledby="new-heading">
+  <div class="block__legend">
+    <h2 id="new-heading">Submit a job</h2>
+    <p>A channel's uploads or an existing playlist, copied into a new playlist of your own. The
+       source is read first so the estimate below is a real count. That costs about one unit per
+       fifty videos — nothing is added to YouTube until you start the job.</p>
+  </div>
+
+  <form class="entryform" method="post" action="/jobs">
+    <div class="field">
+      <label for="source">Channel or playlist</label>
+      <input id="source" name="source" type="text" required autocomplete="off" spellcheck="false"
+             placeholder="https://www.youtube.com/@channelname"
+             aria-describedby="source-help">
+      <p class="field__help" id="source-help">A channel URL, an @handle or a UC… channel ID —
+        or a playlist URL, a link with <code>list=</code> in it, or a PL… playlist ID.
+        <span class="tip">
+          <button class="tip__mark" type="button" aria-describedby="tip-unreadable">
+            {{ icon('punch') }}<span class="tip__label">Some playlists cannot be copied</span>
+          </button>
+          <span class="tip__body" role="tooltip" id="tip-unreadable">
+            <b>Watch Later and Liked videos cannot be copied.</b> YouTube's API does not serve
+            those two to any third-party app, and no permission changes that. Auto-generated
+            mixes have no fixed contents to copy either. Add the videos to a normal playlist on
+            YouTube first, then paste that playlist here.
+          </span>
+        </span>
+      </p>
+    </div>
+
+    <div class="field">
+      <label for="title">Playlist title</label>
+      <input id="title" name="title" type="text" required autocomplete="off"
+             placeholder="Channel backup" aria-describedby="title-help">
+      <p class="field__help" id="title-help">Created private, on the connected account. You can rename it later on YouTube.</p>
+    </div>
+
+    <div class="field field--wide">
+      <label for="description">Description <span class="field__optional">optional</span></label>
+      <textarea id="description" name="description" rows="2" placeholder="Left blank if you don't need one."></textarea>
+    </div>
+
+    {# The run ceiling is deliberately not asked for here. It governs a run, and
+       there is no run yet — it is set on the register record and on the job
+       page, both of which print what is already stored. #}
+
+    <div class="entryform__submit">
+      <button class="plate" type="submit">{{ icon('submit') }}<span>Read source &amp; submit</span></button>
+    </div>
+  </form>
+</section>
+
+<section class="block block--register" aria-labelledby="register-heading"
+         data-register data-running="{{ running_id or '' }}">
+  <div class="block__legend">
+    <h2 id="register-heading">Playlist mirror register</h2>
+    <p>{{ jobs|length }} playlist mirror{{ '' if jobs|length == 1 else 's' }} on file. Paused and stopped
+       jobs resume into the playlist they already created.</p>
+
+    <div id="standing-summary">{% include "partials/orders.html" %}</div>
+
+    {# Twenty jobs is twenty identical decisions, and ticking twenty boxes by
+       hand is where a person makes the one mistake this whole design exists to
+       avoid. Each plate swings both ways rather than sitting beside its
+       opposite: the honest label names the thing not yet true of every job, and
+       once it is true of all of them the only action left is to lift it. #}
+    {% if jobs %}
+      <div class="bulk">
+        <p class="bulk__legend">Every job at once</p>
+
+      {% if bulk.shown %}
+        <form method="post" action="/jobs/schedule-all">
+          <input type="hidden" name="on" value="{{ '1' if bulk.schedule_on else '' }}">
+          <button class="plate plate--small" type="submit"{% if not bulk.eligible %} disabled{% endif %}>
+            {{ icon('standing') }}<span>
+              {%- if bulk.schedule_on %}Turn on daily runs for all
+              {%- else %}Turn off every daily run{% endif -%}
+            </span></button>
+        </form>
+
+        <form method="post" action="/jobs/notify-all">
+          <input type="hidden" name="on" value="{{ '1' if bulk.notify_on else '' }}">
+          <button class="plate plate--small" type="submit"{% if not bulk.standing %} disabled{% endif %}>
+            {{ icon('signal') }}<span>
+              {%- if bulk.notify_on %}Report all to Telegram
+              {%- else %}Stop reporting to Telegram{% endif -%}
+            </span></button>
+        </form>
+
+        <p class="bulk__note">A daily run is set only where a run could still do something, and
+          reporting only where a daily run is set.</p>
+      {% endif %}
+
+        {# Housekeeping about the list, so it is one stored decision here and not
+           a fourth box on every record. It reloads rather than saving in place:
+           striking it takes whole rows off the register, and every count and
+           control around them is drawn by the server against the set that was
+           there. #}
+        <form class="bulk__rule" method="post" action="/jobs/auto-remove"
+              data-reload-on-change>
+          <div class="cap cap--inline">
+            <input class="cap__box" id="auto-remove" name="on" type="checkbox" value="1"
+                   {% if bulk.auto_remove %}checked{% endif %}>
+            <label class="cap__word" for="auto-remove">Remove a job when it finishes</label>
+            <button class="plate plate--small setform__save" type="submit">
+              {{ icon('submit') }}<span>Set</span></button>
+            <p class="cap__help">{{ bulk.remove_line }}</p>
+          </div>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if not jobs %}
+    <div class="empty">
+      <p class="empty__mark" aria-hidden="true">{{ icon('punch') }}</p>
+      <p class="empty__lead">No jobs yet.</p>
+      <p>Submit a channel above. A playlist mirror of 200 videos or fewer finishes inside one day of
+         free credits; anything larger holds at the wall and resumes after the reset, into the
+         same playlist, with no duplicates.</p>
+    </div>
+  {% endif %}
+
+  <ol class="register" role="list">
+    {% for job in jobs %}
+      <li id="job-{{ job.id }}" data-row="{{ job.id }}">
+        <article class="entry">
+          <a class="entry__ref" href="/jobs/{{ job.id }}">
+            <span class="entry__ref-num">{{ job.ref }}</span>
+            <span class="entry__ref-label">job</span>
+          </a>
+
+          <div class="entry__body">
+            <h3 class="entry__title"><a href="/jobs/{{ job.id }}">{{ job.playlist_title }}</a></h3>
+            <p class="entry__source">
+              <span class="kindmark">{{ job.source_label }}</span>{{ job.source_title }}
+              {%- if job.source_owner %} <span class="entry__owner">by {{ job.source_owner }}</span>{% endif %}
+            </p>
+
+            {# Every figure a background run can move is in the document from
+               the start, hidden rather than absent, so the stream restrikes it
+               in place instead of the browser writing markup of its own. #}
+            <dl class="facts">
+              <div><dt>Submitted</dt><dd><time datetime="{{ job.created_at }}">{{ job.created_at[:10] }}</time></dd></div>
+              <div><dt>Added</dt><dd data-row-added>{{ '{:,}'.format(job.added) }} of {{ '{:,}'.format(job.copyable) }}</dd></div>
+              <div><dt>Units used</dt><dd data-row-units>{{ '{:,}'.format(job.units_charged) }}</dd></div>
+              <div{% if not job.skipped %} class="is-hidden"{% endif %} data-row-skipped-line>
+                <dt>Not copyable</dt><dd data-row-skipped>{{ job.skipped }}</dd></div>
+              <div{% if not job.failed %} class="is-hidden"{% endif %} data-row-failed-line>
+                <dt>Failed</dt><dd data-row-failed>{{ job.failed }}</dd></div>
+            </dl>
+
+            {% if job.total %}
+              <div class="tally" role="img" aria-label="{{ job.percent }} percent added"
+                   data-row-tally>
+                <span class="tally__fill" style="--pct: {{ (job.percent / 100)|round(4) }}"></span>
+              </div>
+            {% endif %}
+
+            <p class="entry__note{% if not job.message %} is-hidden{% endif %}"
+               data-row-message>{{ job.message or '' }}</p>
+
+            {# How the job is operated, ruled off from what it has done. Both
+               controls are printed where they can still mean something: the
+               ceiling wherever a next run could hold at it, the daily run
+               wherever there is something left to run — and either of them
+               wherever it is already set, so it can always be lifted from the
+               page it is shown on. #}
+            {% if job.is_running or job.resumable or job.run_limit or job.scheduled %}
+              <div class="entry__ops">
+                {% if job.is_running or job.resumable or job.run_limit %}
+                  {{ run_limit(job, '/', done=(run_done if job.is_running else 0)) }}
+                {% endif %}
+                {% if job.resumable or job.scheduled %}
+                  {{ standing_order(job, '/', standing.telegram_ready, warn=False) }}
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="entry__side">
+            <p class="stamp stamp--{{ job.status }}" data-row-stamp data-status="{{ job.status }}">
+              {%- if job.status == 'complete' %}{{ icon('check') }}
+              {%- elif job.status == 'running' %}{{ icon('run') }}
+              {%- elif job.status == 'held_quota' %}{{ icon('hold') }}
+              {%- elif job.status == 'held_limit' %}{{ icon('ceiling') }}
+              {%- elif job.status == 'failed' %}{{ icon('alert') }}
+              {%- elif job.status == 'cancelled' %}{{ icon('stop') }}
+              {%- else %}{{ icon('clock') }}{% endif -%}
+              <span data-row-stamp-label>{{ job.status_label }}</span>
+            </p>
+
+            {{ order_mark(job) }}
+
+            <div class="entry__actions">
+              {% if job.playlist_url %}
+                <a class="linkout" href="{{ job.playlist_url }}" target="_blank" rel="noopener">
+                  {{ icon('external') }}<span>Playlist</span></a>
+              {% endif %}
+              {% if job.is_running %}
+                <a class="linkout" href="/jobs/{{ job.id }}">{{ icon('run') }}<span>Watch</span></a>
+              {% elif job.resumable %}
+                <form method="post" action="/jobs/{{ job.id }}/start">
+                  <button class="plate plate--small" type="submit"{% if running_id or allocation.exhausted %} disabled{% endif %}>
+                    {%- if job.added %}{{ icon('resume') }}<span>Resume</span>
+                    {%- else %}{{ icon('run') }}<span>Start</span>{% endif -%}
+                  </button>
+                </form>
+                {% if allocation.exhausted and not running_id %}
+                  <p class="controls__note">No free credits left — {{ allocation.resets_in }}.</p>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      </li>
+    {% endfor %}
+  </ol>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/register.js" defer></script>
+{% endblock %}

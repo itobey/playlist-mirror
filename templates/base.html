@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Playlist Mirror{% endblock %}</title>
+<meta name="color-scheme" content="light">
+<link rel="stylesheet" href="/static/listing.css">
+<link rel="icon" href="/static/mark.svg" type="image/svg+xml">
+{# Set before first paint, so the Set plate beside a daily run is never
+   drawn and then taken away: with scripting the boxes post themselves. #}
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+<!--
+THESIS: A playlist mirror is a batch job charged against a finite daily allocation, so this
+is the computing-centre accounting listing that machine rooms printed — not the dark card-grid
+dashboard with an indigo progress bar that every self-hosted tool ships.
+OWN-WORLD: Greenbar continuous form. Cream stock #e9e5d6 banded pale green #cbd9bd every three
+lines, punched sprocket margins pinned at both edges that nothing ever spans, impact ink #1b1e18
+and a second red ribbon #a8301b reserved for state marks and rules. Martian Mono sets preprinted
+legends in tracked caps; Sometype Mono strikes all machine data. No cards, no rounded corners,
+no shadows — rules, bands and stamps carry every division.
+STORY: The operator sees how far today's free credits still reach, submits a channel, watches
+the listing print record by record, and returns after the reset to resume the same job into the
+same playlist.
+FIRST VIEWPORT: Full-bleed banded form between sprocket margins. Masthead legend block, then the
+allocation line — one ruled band carrying a legend, an 11px meter of 100 printed cells with the
+used run struck in ink, a figure marked est., and a "what does this mean?" disclosure holding the
+whole explanation — then the job entry block whose submit control is a struck ink plate at the
+block's right edge, then the register of past jobs as full ruled records.
+FORM: The Allocation Listing — candidate 7 of the grounded list, assigned by the roll; seed key
+0ec641c9. Raised by four challengers it beat: full-viewport ground (seedbed-lobes), a running
+line marking the current record (drum-machine-step-row), complete furniture per register entry
+(character-goods-catalog), signal colour confined to state marks (iridescent-cloud-edge).
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the
+verdict, and DESIGN.md
+-->
+{% from "icons.html" import icon %}
+
+<div class="sprocket sprocket--left" aria-hidden="true"></div>
+<div class="sprocket sprocket--right" aria-hidden="true"></div>
+
+<div class="form">
+  <header class="masthead">
+    <div class="masthead__id">
+      <a class="masthead__name" href="/">Playlist<span class="masthead__break"> </span>Mirror</a>
+      <p class="masthead__sub">Clone a channel's uploads or any public playlist straight into your own playlist.</p>
+    </div>
+    <nav class="masthead__nav" aria-label="Sections">
+      <a href="/" {% if request.url.path == '/' or request.url.path.startswith('/jobs') %}aria-current="page"{% endif %}>Playlists</a>
+      <a href="/setup" {% if request.url.path.startswith('/setup') %}aria-current="page"{% endif %}>Google account</a>
+      <a href="/notify" {% if request.url.path.startswith('/notify') %}aria-current="page"{% endif %}>Telegram</a>
+    </nav>
+  </header>
+
+  {% block allocation %}
+    {% if allocation %}{% include "partials/allocation.html" %}{% endif %}
+  {% endblock %}
+
+  <main class="sheet" id="main">
+    {% if notice %}
+      {# A notice may hand back the one thing the action let go of — the
+         playlist a removed job built. It is a link and not a printed address
+         because the sentence is already long, and the whole point of it is to
+         be followed. #}
+      <p class="flash flash--notice" role="status">{{ icon('check', 'flash__icon') }}<span>{{ notice }}</span>
+        {%- if notice_url %} <a class="linkout linkout--flash" href="{{ notice_url }}" target="_blank" rel="noopener">{{ icon('external') }}<span>Playlist on YouTube</span></a>{% endif %}</p>
+    {% endif %}
+    {% if error %}
+      <p class="flash flash--error" role="alert">{{ icon('alert', 'flash__icon') }}<span>{{ error }}</span></p>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  {# The form's torn edge. Everything the colophon used to explain now lives in
+     the allocation band's own disclosure, next to the figures it is about. #}
+  <div class="form__end" aria-hidden="true"></div>
+
+  {# The printer's imprint: what this form is, which revision, and which office
+     issued it. A version the user can read off the page is worth more in a bug
+     report than one only the server knows, and the repository is where that bug
+     report goes — so the two belong on one line and not in two places.
+
+     A link and not a plate: a plate is an action of this app, and this is an
+     aside. No octocat, for the same reason the 'signal' mark exists and
+     Telegram's paper plane never does. #}
+  <p class="form__stamp">
+    <span>PLAYLIST MIRROR {{ app_version }}</span>
+    {% if available_update %}
+      <span class="form__stamp-rule" aria-hidden="true"></span>
+      <a class="linkout linkout--imprint linkout--update" href="{{ available_update.url }}"
+         target="_blank" rel="noopener">{{ icon('external') }}<span>New version {{ available_update.version }} available</span></a>
+    {% endif %}
+    <span class="form__stamp-rule" aria-hidden="true"></span>
+    <a class="linkout linkout--imprint" href="https://github.com/itobey/playlist-mirror"
+       target="_blank" rel="noopener">{{ icon('external') }}<span>Source on GitHub</span></a>
+  </p>
+</div>
+
+{# The allocation band is painted the same way from two different streams, so
+   its painter loads first and both pages call it. Deferred scripts keep their
+   order, which is what the two below rely on. #}
+<script src="/static/alloc.js" defer></script>
+{# Both the register and the job page carry daily-run boxes and run-ceiling
+   boxes, so these ride on every page rather than in a per-page block. #}
+<script src="/static/standing.js" defer></script>
+<script src="/static/limit.js" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

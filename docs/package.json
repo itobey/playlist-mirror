@@ -1,0 +1,17 @@
+{
+  "name": "playlist-mirror",
+  "description": "Copies a YouTube channel or playlist into your own private, editable playlist",
+  "type": "module",
+  "scripts": {
+    "docs:dev": "vitepress dev .",
+    "docs:build": "vitepress build .",
+    "docs:serve": "vitepress serve ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itobey/playlist-mirror.git"
+  },
+  "devDependencies": {
+    "vitepress": "^1.4.1"
+  }
+}

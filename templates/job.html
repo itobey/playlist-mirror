@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+{% from "partials/standing.html" import standing_order, order_mark %}
+{% from "partials/limit.html" import run_limit %}
+{% block title %}Job {{ job.ref }} — Playlist Mirror{% endblock %}
+
+{% block content %}
+
+<section class="block block--job" aria-labelledby="job-heading"
+         data-job-id="{{ job.id }}" data-was-running="{{ 'true' if job.is_running else 'false' }}"
+         id="job-block">
+  <div class="jobhead">
+    <p class="jobhead__ref"><span>{{ job.ref }}</span><em>job</em></p>
+    <div class="jobhead__id">
+      <h2 id="job-heading">{{ job.playlist_title }}</h2>
+      <p class="jobhead__source">
+        <span class="kindmark">{{ job.source_label }}</span>{{ job.source_title }}
+        {%- if job.source_owner %} <span class="jobhead__owner">by {{ job.source_owner }}</span>{% endif %}
+        {%- if job.source_id %} <span class="jobhead__cid">{{ job.source_id }}</span>{% endif %}</p>
+    </div>
+    <p class="stamp stamp--{{ job.status }}" id="job-stamp" data-status="{{ job.status }}"
+       aria-live="polite" aria-atomic="true">
+      {%- if job.status == 'complete' %}{{ icon('check') }}
+      {%- elif job.status == 'running' %}{{ icon('run') }}
+      {%- elif job.status == 'held_quota' %}{{ icon('hold') }}
+      {%- elif job.status == 'held_limit' %}{{ icon('ceiling') }}
+      {%- elif job.status == 'failed' %}{{ icon('alert') }}
+      {%- elif job.status == 'cancelled' %}{{ icon('stop') }}
+      {%- else %}{{ icon('clock') }}{% endif -%}
+      <span id="job-stamp-label">{{ job.status_label }}</span>
+    </p>
+  </div>
+
+  {{ order_mark(job) }}
+
+  <dl class="facts facts--wide">
+    <div>
+      <dt>{{ 'Videos in playlist' if job.source_is_playlist else 'Videos on channel' }}</dt>
+      <dd id="f-total">{{ '{:,}'.format(job.total) }}</dd>
+    </div>
+    <div><dt>Copied</dt><dd id="f-added">{{ '{:,}'.format(job.added) }}</dd></div>
+    <div><dt>Still to add</dt><dd id="f-pending">{{ '{:,}'.format(job.pending + job.failed) }}</dd></div>
+    {% if job.skipped %}
+      <div>
+        <dt>Not copyable</dt>
+        <dd id="f-skipped">{{ '{:,}'.format(job.skipped) }}</dd>
+      </div>
+    {% endif %}
+    <div><dt>Units used by this job</dt><dd id="f-charged">{{ '{:,}'.format(job.units_charged) }}</dd></div>
+  </dl>
+
+  {% if job.skipped %}
+    <p class="jobnote">{{ icon('cross', 'jobnote__icon') }}<span>Deleted or private at the
+      source, so nothing can copy {{ 'it' if job.skipped == 1 else 'them' }}. Left out of the
+      count and never charged for: this copy is whole at
+      {{ '{:,}'.format(job.copyable) }} videos.</span></p>
+  {% endif %}
+
+  {% if job.total %}
+    <div class="tally tally--large" role="img" aria-label="{{ job.percent }} percent added" id="job-tally">
+      <span class="tally__fill" style="--pct: {{ (job.percent / 100)|round(4) }}"></span>
+      <span class="tally__figure" id="job-percent">{{ job.percent }}%</span>
+    </div>
+  {% endif %}
+
+  <p class="entry__note {% if not job.message %}is-hidden{% endif %}" id="job-message">{{ job.message or '' }}</p>
+
+  {% if another_running %}
+    <p class="flash flash--notice" role="status">{{ icon('hold', 'flash__icon') }}<span>Job
+      {{ '%04d'|format(running_id) }} is running. One playlist mirror at a time — they share the same
+      pool of free credits.</span></p>
+  {% endif %}
+
+  <div class="controls">
+    {# Printed while a run is going as well, not only before one. A ceiling that
+       disappears the moment it starts governing something is a ceiling the
+       operator has to remember instead of read. Withheld only where it can
+       govern nothing: a finished job has no next run to hold. #}
+    {% if job.is_running or job.resumable or job.run_limit %}
+      {{ run_limit(job, '/jobs/' ~ job.id, done=live.settled_this_run, explain=True) }}
+    {% endif %}
+
+    {% if job.is_running %}
+      <form method="post" action="/jobs/{{ job.id }}/stop">
+        <button class="plate plate--stop" type="submit">{{ icon('stop') }}<span>Stop after this video</span></button>
+      </form>
+    {% elif job.needs_preflight %}
+      <form method="post" action="/jobs/{{ job.id }}/start">
+        <button class="plate" type="submit"{% if another_running %} disabled{% endif %}>{{ icon('run') }}<span>Retry</span></button>
+      </form>
+    {% elif job.status == 'complete' and not job.failed %}
+      {% if job.playlist_url %}
+        <a class="plate" href="{{ job.playlist_url }}" target="_blank" rel="noopener">{{ icon('external') }}<span>Open playlist</span></a>
+      {% endif %}
+    {% else %}
+      {# The ceiling is saved by the control that prints it, above, so this
+         form posts nothing but the instruction to run. #}
+      <form class="controls__run" method="post" action="/jobs/{{ job.id }}/start" data-await-limit>
+        <button class="plate" type="submit"{% if another_running or allocation.exhausted %} disabled{% endif %}>
+          {%- if job.added %}{{ icon('resume') }}<span>Resume job</span>
+          {%- else %}{{ icon('run') }}<span>Start job</span>{% endif -%}
+        </button>
+      </form>
+      {% if allocation.exhausted %}
+        <p class="controls__note">Today's free credits are used up. Resume {{ allocation.resets_in }}.</p>
+      {% endif %}
+    {% endif %}
+
+    {# Under the ceiling, because the two are read together: the ceiling says how
+       much one run adds, and this says whether you have to be here for it.
+       Printed while there is something left to run, and also whenever an order
+       already stands, so it can always be lifted from the page it is shown on. #}
+    {% if not job.is_running and not job.needs_preflight and (job.resumable or job.scheduled) %}
+      {{ standing_order(job, '/jobs/' ~ job.id, standing.telegram_ready) }}
+    {% endif %}
+
+    {# A job reads its source once, when it is registered. Everything after runs
+       off that listing, so a channel that posts again is invisible to it until
+       this is pressed. #}
+    {% if not job.is_running %}
+      <form class="controls__recheck" method="post" action="/jobs/{{ job.id }}/refresh">
+        <button class="linkout" type="submit">{{ icon('recheck') }}<span>Re-check source</span></button>
+        <span class="controls__note">Reads the {{ job.source_label|lower }} again — about one
+          unit per 50 videos — and queues whatever it has gained since.</span>
+      </form>
+    {% endif %}
+
+    {% if job.playlist_url and not (job.status == 'complete' and not job.failed) %}
+      <a class="linkout" href="{{ job.playlist_url }}" target="_blank" rel="noopener">{{ icon('external') }}<span>Playlist on YouTube</span></a>
+    {% endif %}
+
+    {% if not job.is_running %}
+      <form method="post" action="/jobs/{{ job.id }}/remove"
+            onsubmit="return confirm('Remove job {{ job.ref }} from this app? Your YouTube playlist is not touched — only this job record goes.')">
+        <button class="linkout linkout--quiet" type="submit">{{ icon('remove') }}<span>Remove job</span></button>
+      </form>
+    {% endif %}
+  </div>
+</section>
+
+{% if job.pending + job.failed %}
+<section class="block block--plan" aria-labelledby="plan-heading" id="plan-block">
+  <div class="block__legend">
+    <h2 id="plan-heading">What is left to add</h2>
+    <p>Adding one video costs 50 of the free API units. These figures are projections from the
+       local ledger, not a reading from YouTube.</p>
+  </div>
+  <dl class="ledger ledger--banded">
+    <div class="ledger__line">
+      <dt>Videos still to add</dt>
+      <dd id="p-left">{{ '{:,}'.format(job.pending + job.failed) }}<span class="unit">videos</span></dd>
+    </div>
+    <div class="ledger__line">
+      <dt>Units required</dt>
+      <dd id="p-units">{{ '{:,}'.format(job.units_remaining_for_job) }}<span class="unit">units</span></dd>
+    </div>
+    <div class="ledger__line">
+      <dt>Today's free credits cover</dt>
+      <dd id="p-covers">{{ '{:,}'.format(allocation.videos_affordable) }}<span class="unit">videos</span></dd>
+    </div>
+    {# Always in the document: the ceiling is set from a control that saves
+       without a reload, so this line has to be able to appear and go with it. #}
+    <div class="ledger__line{% if not job.run_limit %} is-hidden{% endif %}" data-cap-line>
+      <dt>This run stops after</dt>
+      <dd id="p-cap">{{ '{:,}'.format(job.run_stops_after or 0) }}<span class="unit">videos</span></dd>
+    </div>
+    <div class="ledger__line ledger__line--total">
+      <dt>Days needed</dt>
+      <dd id="p-days">{{ job.days_required }}<span class="unit">day{{ '' if job.days_required == 1 else 's' }}</span></dd>
+    </div>
+  </dl>
+  {% if job.days_required > 1 %}
+    <p class="plan__caveat">This job is larger than one day of free credits. It will run to the
+      wall, hold there, and resume into the same playlist when you come back after the reset.
+      Nothing is lost in between and nothing is added twice.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="block block--listing" aria-labelledby="listing-heading">
+  <div class="block__legend">
+    <h2 id="listing-heading">Record listing</h2>
+    <p id="listing-phase" class="listing__phase{% if not job.is_running %} is-hidden{% endif %}"
+       aria-live="polite" aria-atomic="true">
+      <span class="listing__phase-label">{{ live.phase or '' }}</span>
+      <span class="listing__rate" id="listing-rate" aria-hidden="true">
+        {%- if live.rate %}{{ live.rate }} per minute{% endif -%}
+      </span>
+      <span class="listing__eta" id="listing-eta" aria-hidden="true">{{ eta.text }}</span>
+    </p>
+  </div>
+
+  <div class="listing">
+    <div class="listing__cols" aria-hidden="true">
+      <span class="col col--pos">seq</span>
+      <span class="col col--state">disp</span>
+      <span class="col col--title">video</span>
+      <span class="col col--id">id</span>
+    </div>
+
+    <ol class="records" id="records" role="list">
+      {% for rec in records|reverse %}
+        <li class="rec rec--{{ rec.state }}" data-vid="{{ rec.video_id }}">
+          <span class="rec__pos">{{ '%04d'|format(rec.position) }}</span>
+          <span class="rec__state">{% if rec.state == 'added' %}{{ icon('check') }}<span>added</span>{% else %}{{ icon('cross') }}<span>skipped</span>{% endif %}</span>
+          <span class="rec__title">{{ rec.title }}</span>
+          <span class="rec__id">{{ rec.video_id }}</span>
+          {% if rec.message %}<span class="rec__msg">{{ rec.message }}</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+
+    {# The print head. It sits below the last settled record, where the next
+       line will strike. #}
+    {# Not a live region: its title changes every 0.7s for hours. The polite
+       announcements live on the phase line and the disposition stamp instead. #}
+    <div class="running{% if not job.is_running %} is-hidden{% endif %}" id="running-line"
+         aria-hidden="true">
+      <span class="running__caret" aria-hidden="true"></span>
+      <span class="running__pos" id="running-pos">{{ '%04d'|format(next_record.position) if next_record else '' }}</span>
+      <span class="running__title" id="running-title">{{ next_record.title if next_record else '' }}</span>
+    </div>
+
+    <p class="listing__empty{% if records %} is-hidden{% endif %}" id="listing-empty">Nothing
+      printed yet. Records strike here as each video lands in the playlist.</p>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/listing.js" defer></script>
+{% endblock %}

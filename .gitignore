@@ -1,0 +1,18 @@
+# Google OAuth credentials and the stored token - NEVER commit!
+client_secret.json
+token.json
+data/
+
+# Job database
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+.idea
+*.iml

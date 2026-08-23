@@ -1,0 +1,70 @@
+name: Deploy documentation to Pages
+
+# Not triggered by pushes to master: publishing is meant to happen from a release process
+# once one exists in this repo (call this workflow with `uses:` from it, the way
+# fddb-exporter's release.yml calls its own pages.yml). Until then, use workflow_dispatch to
+# publish by hand.
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to build the docs from'
+        required: false
+        type: string
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to build the docs from (default: the branch this run was started on)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: ./docs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 0 # required for the "Last updated" git timestamps
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+      - name: Install dependencies
+        run: npm ci
+      - name: Build with VitePress
+        run: npm run docs:build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/.vitepress/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

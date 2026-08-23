@@ -1,0 +1,65 @@
+{% from "icons.html" import icon %}
+
+{#
+  The run ceiling: the punch box in its original role, admitting a figure.
+
+  It used to be printed only inside the control that starts a run, on the job
+  page, on the reasoning that a ceiling belongs to a run rather than to a
+  playlist mirror. It is stored on the job either way, so what that arrangement really
+  meant was that the figure could only be read from one screen and only while
+  the job stood still — and a limit you cannot see from the register, or while
+  the run it governs is going, is a limit nobody can plan around.
+
+  So it is a setting the job holds, printed everywhere the job is, saved by the
+  control that shows it — the daily run's own arrangement, and for the same
+  reason: one stored figure, one place it is written, every surface reading back
+  the same sentence the server wrote.
+
+  While a run is going the box and the blank are struck rather than enterable. A
+  run reads the ceiling once, when it starts, so a control that appeared to
+  change it mid-run would silently do nothing — and a control that silently does
+  nothing is worse than one that is not there.
+#}
+
+{% macro run_limit(job, back, done=None, explain=False) %}
+<form class="setform limit{% if job.is_running %} limit--struck{% endif %}"
+      method="post" action="/jobs/{{ job.id }}/limit" data-limit data-job="{{ job.id }}">
+  <input type="hidden" name="back" value="{{ back }}">
+  <div class="cap cap--inline">
+    <input class="cap__box" id="limit-{{ job.id }}" name="limit_on" type="checkbox" value="1"
+           aria-describedby="limit-note-{{ job.id }}"
+           {% if job.run_limit %}checked{% endif %}{% if job.is_running %} disabled{% endif %}>
+    <label class="cap__word" for="limit-{{ job.id }}">Limit each run</label>
+
+    <div class="cap__set">
+      <label class="cap__label" for="run-limit-{{ job.id }}">stop after</label>
+      <input class="cap__num" id="run-limit-{{ job.id }}" name="run_limit" type="number"
+             min="1" step="1" value="{{ job.run_limit or 50 }}" inputmode="numeric"
+             autocomplete="off"{% if job.is_running %} disabled{% endif %}>
+      <span class="cap__unit">videos</span>
+
+      {# What the ceiling is actually measured against, while it is being
+         measured. The ceiling counts attempts, not successes, so this is the
+         run's settled count and not its added one. #}
+      {% if job.is_running and job.run_limit %}
+        <span class="cap__tally"><span data-limit-done>{{ '{:,}'.format(done or 0) }}</span>
+          <span class="cap__unit">done this run</span></span>
+      {% endif %}
+    </div>
+
+    <button class="plate plate--small setform__save" type="submit">
+      {{ icon('submit') }}<span>Set</span></button>
+
+    <p class="cap__help" id="limit-note-{{ job.id }}" data-limit-note>{{ job.limit_line }}</p>
+
+    {# Withheld while the run is going: this explains a decision, and the
+       decision is already made and in force. The sentence above says what it is
+       doing now, which is the only part still true. #}
+    {% if explain and not job.is_running %}
+      <p class="cap__help cap__help--aside">Left off, a run goes until today's free credits are
+        spent. With a limit it holds the moment it reaches your number — resume any time, into
+        the same playlist, with nothing added twice.</p>
+    {% endif %}
+  </div>
+</form>
+{% endmacro %}
