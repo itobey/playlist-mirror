@@ -4,7 +4,7 @@ A Helm chart is published for running Playlist Mirror on Kubernetes, maintained 
 [itobey/charts](https://github.com/itobey/charts/tree/master/playlist-mirror).
 
 ```bash
-helm pull oci://ghcr.io/itobey/charts/playlist-mirror --version 0.1.0
+helm pull oci://ghcr.io/itobey/charts/playlist-mirror --version 1.0.0
 ```
 
 You can also find the chart on

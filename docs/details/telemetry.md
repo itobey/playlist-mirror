@@ -15,7 +15,7 @@ Everything, in full. There is nothing in the payload that is not in this table.
 | Field                | Example         | Meaning                                                    |
 |----------------------|-----------------|------------------------------------------------------------|
 | `instanceHash`       | `9f2c…`         | Random id for this installation, so repeat pings count once |
-| `appVersion`         | `0.1.0`         | The version you are running                                 |
+| `appVersion`         | `1.0.0`         | The version you are running                                 |
 | `executionMode`      | `CONTAINER`     | `SOURCE`, `CONTAINER` or `KUBERNETES`                       |
 | `pythonVersion`      | `3.12.7`        | Which Python the image or your checkout runs on             |
 | `connected`          | `true`          | Whether the Google sign-in has been completed               |
