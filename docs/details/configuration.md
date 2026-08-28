@@ -16,7 +16,7 @@ variable no longer has any effect until the stored value is cleared.
 | `DB_FILE` | `$DATA_DIR/transfers.sqlite3` | SQLite database holding jobs and settings. |
 | `APP_HOST` | `0.0.0.0` | Interface the app binds to. |
 | `APP_PORT` | `8000` | Port the app binds to. |
-| `PUBLIC_BASE_URL` | `http://localhost:$APP_PORT` | Where Google sends the user back after sign-in. Must match the address you actually open in the browser, and `<PUBLIC_BASE_URL>/oauth/callback` must be registered on the OAuth client. Never derived from the incoming request, so an ingress or reverse proxy cannot fill it in for you — leaving it unset behind one causes `redirect_uri_mismatch`. See [Getting started](/introduction/getting-started). |
+| `PUBLIC_BASE_URL` | `http://localhost:$APP_PORT` | Where Google sends the user back after sign-in. Must match the address you actually open in the browser, and `<PUBLIC_BASE_URL>/oauth/callback` must be registered on the OAuth client. Never derived from the incoming request, so an ingress or reverse proxy cannot fill it in for you — leaving it unset behind one causes `redirect_uri_mismatch`. See [Installation & setup](/introduction/getting-started). |
 | `QUOTA_DAILY_LIMIT` | `10000` | The project's daily YouTube Data API quota, in units. Only seeds the figure shown on the Account page — the value set there is stored in the database and wins from then on. Clamped to a minimum of 50. |
 | `QUOTA_RESERVE` | `50` | Units held back so a run never spends the last of the allocation on an insert it cannot confirm. Set to `0` to spend the allocation to the floor. |
 | `QUOTA_RESET_TZ` | `America/Los_Angeles` | Timezone the daily quota resets in. Google's own reset is midnight Pacific. |

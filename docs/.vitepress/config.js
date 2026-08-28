@@ -101,8 +101,8 @@ export default {
                 text: "Introduction",
                 collapsed: false,
                 items: [
-                    { text: "What is Playlist Mirror?", link: "/introduction/" },
-                    { text: "Getting started", link: "/introduction/getting-started" }
+                    { text: "Overview", link: "/introduction/" },
+                    { text: "Installation & setup", link: "/introduction/getting-started" }
                 ]
             },
             {

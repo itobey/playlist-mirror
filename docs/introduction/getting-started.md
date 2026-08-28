@@ -1,4 +1,4 @@
-# Getting started
+# Installation & setup
 
 ## Run it
 

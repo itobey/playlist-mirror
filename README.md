@@ -22,6 +22,10 @@ to copy every available video from a channel or playlist into your own private, 
 playlist. You can watch through it and delete videos as you go — something YouTube's channel
 pages do not let you do.
 
+<a href="docs/public/images/overview.png" target="_blank" rel="noopener noreferrer">
+  <img src="docs/public/images/overview.png" alt="Playlist Mirror overview showing the job submission form and playlist mirror register">
+</a>
+
 Using the YouTube Data API does not cost anything. Every Google Cloud project receives a free
 daily quota by default, enough to add roughly 200 videos per day. Larger sources may therefore
 take several days, so Playlist Mirror estimates the required quota and completion time up
@@ -60,7 +64,7 @@ uploading the OAuth client file and connecting your Google account. Persistent s
 in `./data`; back up that directory to preserve your sign-in, settings, and jobs.
 
 For the complete Google Cloud and OAuth setup, see
-[Getting started](https://itobey.github.io/playlist-mirror/introduction/getting-started).
+[Installation & setup](https://itobey.github.io/playlist-mirror/introduction/getting-started).
 
 # Technology Stack
 
