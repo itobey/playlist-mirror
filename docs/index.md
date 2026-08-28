@@ -7,10 +7,7 @@ hero:
   tagline: Copies every video of a channel — or any playlist you can view — into your own private, editable playlist. Self-hosted, single Docker container.
   actions:
     - theme: brand
-      text: Get started
-      link: /introduction/getting-started
-    - theme: alt
-      text: What is Playlist Mirror?
+      text: Explore Playlist Mirror
       link: /introduction/
     - theme: alt
       text: GitHub

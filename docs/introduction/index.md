@@ -1,4 +1,4 @@
-# What is Playlist Mirror?
+# Overview
 
 Playlist Mirror copies every video of a YouTube channel — or of any playlist you can view —
 into your own private, editable playlist. Watch through it and delete videos as you go,
@@ -6,6 +6,22 @@ something YouTube's own channel pages don't let you do.
 
 It's self-hosted, single user, and runs in one Docker container on your own machine or home
 server.
+
+## At a glance
+
+The playlists overview is where you submit a channel or playlist, keep an eye on your daily
+API quota, and manage every mirror job.
+
+<a href="../images/overview.png" target="_blank" rel="noopener noreferrer">
+  <img src="/images/overview.png" alt="Playlist Mirror overview showing the job submission form and playlist mirror register">
+</a>
+
+Open a job to see its progress, quota estimate, scheduling controls, and the videos that are
+still waiting to be copied.
+
+<a href="../images/job-detail.png" target="_blank" rel="noopener noreferrer">
+  <img src="/images/job-detail.png" alt="Playlist Mirror job detail showing progress, quota estimates, and job controls">
+</a>
 
 ## Why this exists
 
@@ -62,5 +78,6 @@ for how that accounting works.
 
 ## Next steps
 
-[Get started](/introduction/getting-started) with Docker Compose, or jump straight to
+[Installation & setup](/introduction/getting-started) covers Docker Compose and Google OAuth,
+or jump straight to
 [configuration](/details/configuration) if you're already familiar with the app.

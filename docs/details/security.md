@@ -24,7 +24,7 @@ worked locally will fail with `Error 400: redirect_uri_mismatch` once the app mo
 address other than localhost, create a **Web application** OAuth client and register the
 exact redirect URI shown in the app under **Authorized redirect URIs**. It has to be
 `https://` on a real public TLD, though the host only needs to resolve for your browser, not
-for Google. See [Getting started](/introduction/getting-started) and
+for Google. See [Installation & setup](/introduction/getting-started) and
 [Troubleshooting](/details/troubleshooting#error-400-redirect-uri-mismatch).
 
 ## What's stored, and where

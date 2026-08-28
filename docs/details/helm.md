@@ -4,7 +4,7 @@ A Helm chart is published for running Playlist Mirror on Kubernetes, maintained 
 [itobey/charts](https://github.com/itobey/charts/tree/master/playlist-mirror).
 
 ```bash
-helm pull oci://ghcr.io/itobey/charts/playlist-mirror --version 1.0.0
+helm pull oci://ghcr.io/itobey/charts/playlist-mirror --version 1.0.2
 ```
 
 You can also find the chart on
@@ -24,7 +24,7 @@ Set `config.publicBaseUrl` to wherever the app is actually reached, e.g.
 `https://playlist.example.com`. Google sends the OAuth sign-in back to
 `<publicBaseUrl>/oauth/callback`, so sign-in fails behind an ingress until this matches — the
 app never derives it from the incoming request. See
-[Getting started](/introduction/getting-started) for the full OAuth setup.
+[Installation & setup](/introduction/getting-started) for the full OAuth setup.
 
 On first visit you land on `/setup` to upload a Google OAuth client secret JSON file and sign
 in. In a cluster that has to be a **Web application** client with
